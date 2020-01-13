@@ -1,10 +1,16 @@
 import React from 'react';
+import { Button } from '@material-ui/core';
+import { Delete } from '@material-ui/icons';
 import logo from './logo.svg';
 import './App.css';
 
 const App: React.FC = () => (
   <div className="App">
     <header className="App-header">
+      <Button color="secondary">
+        <Delete color="secondary" />
+        Delete
+      </Button>
       <img src={logo} className="App-logo" alt="logo" />
       <p>
         Edit <code>src/App.tsx</code> and save to reload.
