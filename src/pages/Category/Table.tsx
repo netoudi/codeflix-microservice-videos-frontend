@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Chip } from '@material-ui/core';
 import MUIDataTable, { MUIDataTableColumn } from 'mui-datatables';
 import { httpVideo } from '../../util/http';
+import { formatDate } from '../../util/format';
 
 const columnsDefinition: MUIDataTableColumn[] = [
   {
@@ -24,6 +25,11 @@ const columnsDefinition: MUIDataTableColumn[] = [
   {
     name: 'created_at',
     label: 'Criado em',
+    options: {
+      customBodyRender(value, tableMeta, updateValue) {
+        return formatDate(value, "dd/MM/yyyy 'às' H:mm");
+      },
+    },
   },
 ];
 
