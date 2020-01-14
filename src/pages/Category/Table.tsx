@@ -1,5 +1,6 @@
-import * as React from 'react';
+import React, { useState, useEffect } from 'react';
 import MUIDataTable, { MUIDataTableColumn } from 'mui-datatables';
+import { httpVideo } from '../../util/http';
 
 const columnsDefinition: MUIDataTableColumn[] = [
   {
@@ -11,24 +12,25 @@ const columnsDefinition: MUIDataTableColumn[] = [
     label: 'Ativo?',
   },
   {
-    name: 'created_ad',
+    name: 'created_at',
     label: 'Criado em',
   },
-];
-
-const data = [
-  { name: 'test1', is_active: true, created_ad: '2020-01-14' },
-  { name: 'test2', is_active: true, created_ad: '2020-01-15' },
-  { name: 'test3', is_active: false, created_ad: '2020-01-16' },
-  { name: 'test4', is_active: true, created_ad: '2020-01-17' },
-  { name: 'test5', is_active: false, created_ad: '2020-01-18' },
-  { name: 'test6', is_active: true, created_ad: '2020-01-14' },
 ];
 
 type TableProps = {};
 
 const Table: React.FC = (props: TableProps) => {
-  return <MUIDataTable title="" columns={columnsDefinition} data={data} />;
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    httpVideo
+      .get('/api/categories')
+      .then((response) => setCategories(response.data.data));
+  }, []);
+
+  return (
+    <MUIDataTable title="" columns={columnsDefinition} data={categories} />
+  );
 };
 
 export default Table;
