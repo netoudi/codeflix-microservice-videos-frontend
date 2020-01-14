@@ -21,7 +21,7 @@ export const Page: React.FC<Props> = ({ title, children }: Props) => {
         {title}
       </Typography>
 
-      <Box paddingTop="20px">{children}</Box>
+      <Box paddingTop={2}>{children}</Box>
     </Container>
   );
 };
