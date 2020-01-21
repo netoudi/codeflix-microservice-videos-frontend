@@ -39,6 +39,7 @@ module.exports = {
         extensions: ['.tsx'],
       },
     ],
+    'react/jsx-props-no-spreading': 'off',
     'react/jsx-one-expression-per-line': 'off',
     'import/prefer-default-export': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
