@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import MUIDataTable, { MUIDataTableColumn } from 'mui-datatables';
-import { httpVideo } from '../../util/http';
+import castMemberHttp from '../../util/http/cast-member-http';
 import { formatDate } from '../../util/format';
 
 const columnsDefinition: MUIDataTableColumn[] = [
@@ -34,14 +34,10 @@ const Table: React.FC = (props: TableProps) => {
   const [castMembers, setCastMembers] = useState([]);
 
   useEffect(() => {
-    httpVideo
-      .get('/api/cast-members')
-      .then((response) => setCastMembers(response.data.data));
+    castMemberHttp.list().then((response) => setCastMembers(response.data.data));
   }, []);
 
-  return (
-    <MUIDataTable title="" columns={columnsDefinition} data={castMembers} />
-  );
+  return <MUIDataTable title="" columns={columnsDefinition} data={castMembers} />;
 };
 
 export default Table;

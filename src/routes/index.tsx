@@ -2,7 +2,8 @@ import { RouteProps } from 'react-router-dom';
 import Dashboard from '../pages/Dashboard';
 import CategoryList from '../pages/Category/PageList';
 import CategoryForm from '../pages/Category/PageForm';
-import CastMemberList from '../pages/CastMember/List';
+import CastMemberList from '../pages/CastMember/PageList';
+import CastMemberForm from '../pages/CastMember/PageForm';
 import GenreList from '../pages/Genre/List';
 
 export interface MyRouteProps extends RouteProps {
@@ -50,7 +51,7 @@ const routes: MyRouteProps[] = [
     name: 'cast_members.create',
     label: 'Criar membro',
     path: '/cast-members/create',
-    component: CastMemberList,
+    component: CastMemberForm,
     exact: true,
   },
   {
