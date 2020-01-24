@@ -9,6 +9,14 @@ import {
   Theme,
 } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
+import categoryHttp from '../../util/http/category-http';
+
+interface Category {
+  id: string;
+  name: string;
+  description: string;
+  is_active: boolean;
+}
 
 const useStyles = makeStyles((theme: Theme) => ({
   submit: {
@@ -24,10 +32,22 @@ const Form: React.FC = () => {
     variant: 'outlined',
   };
 
-  const { register, getValues } = useForm();
+  const { register, handleSubmit, getValues } = useForm({
+    defaultValues: {
+      // eslint-disable-next-line @typescript-eslint/camelcase
+      is_active: true,
+    },
+  });
+
+  function onSubmit(formData, event) {
+    categoryHttp
+      .create<{ data: Category }>(formData)
+      .then((response) => console.log(response.data.data))
+      .catch((error) => console.log(error));
+  }
 
   return (
-    <form action="">
+    <form onSubmit={handleSubmit(onSubmit)}>
       <TextField name="name" label="Nome" fullWidth variant="outlined" inputRef={register} />
       <TextField
         name="description"
@@ -39,9 +59,9 @@ const Form: React.FC = () => {
         margin="normal"
         inputRef={register}
       />
-      <Checkbox name="is_active" inputRef={register} /> Ativo?
+      <Checkbox name="is_active" inputRef={register} defaultChecked /> Ativo?
       <Box dir="rtl">
-        <Button {...buttonProps} onClick={() => console.log(getValues())}>
+        <Button {...buttonProps} onClick={() => onSubmit(getValues(), null)}>
           Salvar
         </Button>
         <Button {...buttonProps} type="submit">
