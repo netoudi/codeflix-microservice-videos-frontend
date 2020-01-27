@@ -7,15 +7,10 @@ import Table from './Table';
 
 type ListProps = {};
 
-const List: React.FC = (props: ListProps) => (
-  <Page title="Listagem de membros">
+const PageList: React.FC = (props: ListProps) => (
+  <Page title="Listagem de gêneros">
     <Box dir="rtl">
-      <Fab
-        title="Adicionar membro"
-        size="small"
-        component={Link}
-        to="/cast-members/create"
-      >
+      <Fab title="Adicionar gênero" size="small" component={Link} to="/genres/create">
         <AddIcon />
       </Fab>
     </Box>
@@ -25,4 +20,4 @@ const List: React.FC = (props: ListProps) => (
   </Page>
 );
 
-export default List;
+export default PageList;

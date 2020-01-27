@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Chip } from '@material-ui/core';
 import MUIDataTable, { MUIDataTableColumn } from 'mui-datatables';
-import { httpVideo } from '../../util/http';
+import genreHttp from '../../util/http/genre-http';
 import { formatDate } from '../../util/format';
 
 interface Category {
@@ -52,9 +52,7 @@ const Table: React.FC = (props: TableProps) => {
   const [genres, setGenres] = useState([]);
 
   useEffect(() => {
-    httpVideo
-      .get('/api/genres')
-      .then((response) => setGenres(response.data.data));
+    genreHttp.list().then((response) => setGenres(response.data.data));
   }, []);
 
   return <MUIDataTable title="" columns={columnsDefinition} data={genres} />;
