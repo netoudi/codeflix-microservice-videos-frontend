@@ -35,7 +35,7 @@ const Form: React.FC = () => {
 
   const buttonProps: ButtonProps = {
     className: classes.submit,
-    variant: 'outlined',
+    variant: 'contained',
   };
 
   const { register, handleSubmit, getValues, setValue } = useForm();
@@ -62,12 +62,12 @@ const Form: React.FC = () => {
       <FormControl margin="normal">
         <FormLabel component="legend">Tipo</FormLabel>
         <RadioGroup aria-label="type" name="type" onChange={handleChange} row>
-          <FormControlLabel value="1" control={<Radio />} label="Diretor" />
-          <FormControlLabel value="2" control={<Radio />} label="Ator" />
+          <FormControlLabel value="1" control={<Radio color="primary" />} label="Diretor" />
+          <FormControlLabel value="2" control={<Radio color="primary" />} label="Ator" />
         </RadioGroup>
       </FormControl>
       <Box dir="rtl">
-        <Button {...buttonProps} onClick={() => onSubmit(getValues(), null)}>
+        <Button {...buttonProps} color="primary" onClick={() => onSubmit(getValues(), null)}>
           Salvar
         </Button>
         <Button {...buttonProps} type="submit">

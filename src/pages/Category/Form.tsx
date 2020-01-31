@@ -29,7 +29,7 @@ const Form: React.FC = () => {
 
   const buttonProps: ButtonProps = {
     className: classes.submit,
-    variant: 'outlined',
+    variant: 'contained',
   };
 
   const { register, handleSubmit, getValues } = useForm({
@@ -59,9 +59,9 @@ const Form: React.FC = () => {
         margin="normal"
         inputRef={register}
       />
-      <Checkbox name="is_active" inputRef={register} defaultChecked /> Ativo?
+      <Checkbox name="is_active" color="primary" inputRef={register} defaultChecked /> Ativo?
       <Box dir="rtl">
-        <Button {...buttonProps} onClick={() => onSubmit(getValues(), null)}>
+        <Button {...buttonProps} color="primary" onClick={() => onSubmit(getValues(), null)}>
           Salvar
         </Button>
         <Button {...buttonProps} type="submit">

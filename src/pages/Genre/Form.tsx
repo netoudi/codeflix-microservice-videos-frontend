@@ -44,7 +44,7 @@ const Form: React.FC = () => {
 
   const buttonProps: ButtonProps = {
     className: classes.submit,
-    variant: 'outlined',
+    variant: 'contained',
   };
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -98,9 +98,9 @@ const Form: React.FC = () => {
           </MenuItem>
         ))}
       </TextField>
-      <Checkbox name="is_active" inputRef={register} defaultChecked /> Ativo?
+      <Checkbox name="is_active" color="primary" inputRef={register} defaultChecked /> Ativo?
       <Box dir="rtl">
-        <Button {...buttonProps} onClick={() => onSubmit(getValues(), null)}>
+        <Button {...buttonProps} color="primary" onClick={() => onSubmit(getValues(), null)}>
           Salvar
         </Button>
         <Button {...buttonProps} type="submit">
