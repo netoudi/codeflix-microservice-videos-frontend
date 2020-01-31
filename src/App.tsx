@@ -1,12 +1,13 @@
 import React from 'react';
-import { Box } from '@material-ui/core';
+import { Box, MuiThemeProvider } from '@material-ui/core';
 import { BrowserRouter } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
 import AppRouter from './routes/AppRouter';
 import Breadcrumbs from './components/Breadcrumbs';
+import theme from './theme';
 
 const App: React.FC = () => (
-  <>
+  <MuiThemeProvider theme={theme}>
     <BrowserRouter>
       <Navbar />
       <Box paddingTop="70px">
@@ -14,7 +15,7 @@ const App: React.FC = () => (
         <AppRouter />
       </Box>
     </BrowserRouter>
-  </>
+  </MuiThemeProvider>
 );
 
 export default App;
