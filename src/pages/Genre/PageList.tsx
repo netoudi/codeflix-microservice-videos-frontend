@@ -9,8 +9,14 @@ type ListProps = {};
 
 const PageList: React.FC = (props: ListProps) => (
   <Page title="Listagem de gêneros">
-    <Box dir="rtl">
-      <Fab title="Adicionar gênero" size="small" component={Link} to="/genres/create">
+    <Box dir="rtl" paddingBottom={2}>
+      <Fab
+        title="Adicionar gênero"
+        color="secondary"
+        size="small"
+        component={Link}
+        to="/genres/create"
+      >
         <AddIcon />
       </Fab>
     </Box>

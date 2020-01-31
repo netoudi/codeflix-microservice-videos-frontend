@@ -44,6 +44,7 @@ const Form: React.FC = () => {
 
   const buttonProps: ButtonProps = {
     className: classes.submit,
+    color: 'secondary',
     variant: 'contained',
   };
 
@@ -100,7 +101,7 @@ const Form: React.FC = () => {
       </TextField>
       <Checkbox name="is_active" color="primary" inputRef={register} defaultChecked /> Ativo?
       <Box dir="rtl">
-        <Button {...buttonProps} color="primary" onClick={() => onSubmit(getValues(), null)}>
+        <Button {...buttonProps} onClick={() => onSubmit(getValues(), null)}>
           Salvar
         </Button>
         <Button {...buttonProps} type="submit">

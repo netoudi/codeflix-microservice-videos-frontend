@@ -37,9 +37,7 @@ interface LinkRouterProps extends LinkProps {
   replace?: boolean;
 }
 
-const LinkRouter = (props: LinkRouterProps) => (
-  <Link {...props} component={RouterLink as any} />
-);
+const LinkRouter = (props: LinkRouterProps) => <Link {...props} component={RouterLink as any} />;
 
 export default function Breadcrumbs() {
   const classes = useStyles();
@@ -67,12 +65,7 @@ export default function Breadcrumbs() {
               {breadcrumbNameMap[route]}
             </Typography>
           ) : (
-            <LinkRouter
-              color="inherit"
-              to={to}
-              key={to}
-              className={classes.linkRouter}
-            >
+            <LinkRouter color="inherit" to={to} key={to} className={classes.linkRouter}>
               {breadcrumbNameMap[route]}
             </LinkRouter>
           );
@@ -83,7 +76,7 @@ export default function Breadcrumbs() {
 
   return (
     <Container>
-      <Box paddingBottom={2}>
+      <Box paddingTop={2} paddingBottom={1}>
         <Route>{({ location }) => makeBreadcrumbs(location)}</Route>
       </Box>
     </Container>
