@@ -35,12 +35,17 @@ const validationSchema = Yup.object().shape({
 });
 
 const Form: React.FC = () => {
+  const { id } = useParams();
+  const [category, setCategory] = useState<Category | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+
   const classes = useStyles();
 
   const buttonProps: ButtonProps = {
     className: classes.submit,
     color: 'secondary',
     variant: 'contained',
+    disabled: loading,
   };
 
   const { register, handleSubmit, getValues, setValue, errors, reset, watch } = useForm<Category>({
@@ -51,9 +56,6 @@ const Form: React.FC = () => {
     },
   });
 
-  const { id } = useParams();
-  const [category, setCategory] = useState<Category | null>(null);
-
   useEffect(() => {
     register({ name: 'is_active' });
   }, [register]);
@@ -61,18 +63,28 @@ const Form: React.FC = () => {
   useEffect(() => {
     if (!id) return;
 
-    categoryHttp.get<{ data: Category }>(id).then((response) => {
-      setCategory(response.data.data);
-      reset(response.data.data);
-    });
+    setLoading(true);
+
+    categoryHttp
+      .get<{ data: Category }>(id)
+      .then((response) => {
+        setCategory(response.data.data);
+        reset(response.data.data);
+      })
+      .finally(() => setLoading(false));
   }, []); // eslint-disable-line
 
   function onSubmit(formData, event) {
+    setLoading(true);
+
     const http = !category
       ? categoryHttp.create(formData)
       : categoryHttp.update(category.id, formData);
 
-    http.then((response) => console.log(response.data.data)).catch((error) => console.log(error));
+    http
+      .then((response) => console.log(response.data.data))
+      .catch((error) => console.log(error))
+      .finally(() => setLoading(false));
   }
 
   return (
@@ -83,6 +95,7 @@ const Form: React.FC = () => {
         fullWidth
         variant="outlined"
         inputRef={register}
+        disabled={loading}
         error={errors.name !== undefined}
         helperText={errors.name && errors.name.message}
         InputLabelProps={{ shrink: true }}
@@ -96,9 +109,11 @@ const Form: React.FC = () => {
         rows={4}
         margin="normal"
         inputRef={register}
+        disabled={loading}
         InputLabelProps={{ shrink: true }}
       />
       <FormControlLabel
+        disabled={loading}
         control={
           <Checkbox
             name="is_active"
