@@ -11,6 +11,7 @@ import {
   Theme,
 } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
+import { useSnackbar } from 'notistack';
 import * as Yup from '../../util/vendor/yup';
 import categoryHttp from '../../util/http/category-http';
 
@@ -37,6 +38,7 @@ const validationSchema = Yup.object().shape({
 const Form: React.FC = () => {
   const { id } = useParams();
   const history = useHistory();
+  const snackbar = useSnackbar();
   const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -84,6 +86,7 @@ const Form: React.FC = () => {
 
     http
       .then((response) => {
+        snackbar.enqueueSnackbar('Categoria salva com sucesso.', { variant: 'success' });
         setTimeout(() => {
           event
             ? id
@@ -92,7 +95,10 @@ const Form: React.FC = () => {
             : history.push('/categories');
         });
       })
-      .catch((error) => console.log(error))
+      .catch((error) => {
+        snackbar.enqueueSnackbar('Não foi possível salvar a categoria.', { variant: 'error' });
+        console.log(error);
+      })
       .finally(() => setLoading(false));
   }
 
