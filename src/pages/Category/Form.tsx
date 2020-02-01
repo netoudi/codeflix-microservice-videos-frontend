@@ -1,4 +1,5 @@
-import * as React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router';
 import {
   Box,
   Button,
@@ -41,7 +42,7 @@ const Form: React.FC = () => {
     variant: 'contained',
   };
 
-  const { register, handleSubmit, getValues, errors } = useForm<Category>({
+  const { register, handleSubmit, getValues, errors, reset } = useForm<Category>({
     validationSchema,
     defaultValues: {
       // eslint-disable-next-line @typescript-eslint/camelcase
@@ -49,11 +50,24 @@ const Form: React.FC = () => {
     },
   });
 
+  const { id } = useParams();
+  const [category, setCategory] = useState<Category | null>(null);
+
+  useEffect(() => {
+    if (!id) return;
+
+    categoryHttp.get<{ data: Category }>(id).then((response) => {
+      setCategory(response.data.data);
+      reset(response.data.data);
+    });
+  }, []); // eslint-disable-line
+
   function onSubmit(formData, event) {
-    categoryHttp
-      .create<{ data: Category }>(formData)
-      .then((response) => console.log(response.data.data))
-      .catch((error) => console.log(error));
+    const http = !category
+      ? categoryHttp.create(formData)
+      : categoryHttp.update(category.id, formData);
+
+    http.then((response) => console.log(response.data.data)).catch((error) => console.log(error));
   }
 
   return (
@@ -66,6 +80,7 @@ const Form: React.FC = () => {
         inputRef={register}
         error={errors.name !== undefined}
         helperText={errors.name && errors.name.message}
+        InputLabelProps={{ shrink: true }}
       />
       <TextField
         name="description"
@@ -76,6 +91,7 @@ const Form: React.FC = () => {
         rows={4}
         margin="normal"
         inputRef={register}
+        InputLabelProps={{ shrink: true }}
       />
       <Checkbox name="is_active" color="primary" inputRef={register} defaultChecked /> Ativo?
       <Box dir="rtl">
