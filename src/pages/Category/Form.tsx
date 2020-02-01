@@ -9,7 +9,7 @@ import {
   Theme,
 } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
-import * as Yup from 'yup';
+import * as Yup from '../../util/vendor/yup';
 import categoryHttp from '../../util/http/category-http';
 
 interface Category {
@@ -26,7 +26,10 @@ const useStyles = makeStyles((theme: Theme) => ({
 }));
 
 const validationSchema = Yup.object().shape({
-  name: Yup.string().required(),
+  name: Yup.string()
+    .label('Nome')
+    .max(255)
+    .required(),
 });
 
 const Form: React.FC = () => {
