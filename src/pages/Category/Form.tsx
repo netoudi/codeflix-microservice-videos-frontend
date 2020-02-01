@@ -5,6 +5,7 @@ import {
   Button,
   ButtonProps,
   Checkbox,
+  FormControlLabel,
   makeStyles,
   TextField,
   Theme,
@@ -42,7 +43,7 @@ const Form: React.FC = () => {
     variant: 'contained',
   };
 
-  const { register, handleSubmit, getValues, errors, reset } = useForm<Category>({
+  const { register, handleSubmit, getValues, setValue, errors, reset, watch } = useForm<Category>({
     validationSchema,
     defaultValues: {
       // eslint-disable-next-line @typescript-eslint/camelcase
@@ -52,6 +53,10 @@ const Form: React.FC = () => {
 
   const { id } = useParams();
   const [category, setCategory] = useState<Category | null>(null);
+
+  useEffect(() => {
+    register({ name: 'is_active' });
+  }, [register]);
 
   useEffect(() => {
     if (!id) return;
@@ -93,7 +98,18 @@ const Form: React.FC = () => {
         inputRef={register}
         InputLabelProps={{ shrink: true }}
       />
-      <Checkbox name="is_active" color="primary" inputRef={register} defaultChecked /> Ativo?
+      <FormControlLabel
+        control={
+          <Checkbox
+            name="is_active"
+            color="primary"
+            onChange={() => setValue('is_active', !getValues().is_active)}
+            checked={watch('is_active')}
+          />
+        }
+        label="Ativo?"
+        labelPlacement="end"
+      />
       <Box dir="rtl">
         <Button {...buttonProps} onClick={() => onSubmit(getValues(), null)}>
           Salvar

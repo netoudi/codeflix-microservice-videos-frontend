@@ -39,6 +39,7 @@ module.exports = {
         extensions: ['.tsx'],
       },
     ],
+    'react/jsx-wrap-multilines': ['error', { arrow: true, return: true, declaration: true }],
     'implicit-arrow-linebreak': 'off',
     'react/jsx-props-no-spreading': 'off',
     'react/jsx-one-expression-per-line': 'off',
