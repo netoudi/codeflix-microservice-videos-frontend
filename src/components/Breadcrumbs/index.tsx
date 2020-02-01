@@ -4,7 +4,7 @@ import Container from '@material-ui/core/Container';
 import Typography from '@material-ui/core/Typography';
 import MUIBreadcrumbs from '@material-ui/core/Breadcrumbs';
 import Box from '@material-ui/core/Box';
-import { createStyles, makeStyles } from '@material-ui/core/styles';
+import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import { Route } from 'react-router';
 import { Link as RouterLink } from 'react-router-dom';
 import { Location } from 'history';
@@ -16,16 +16,16 @@ routes.forEach((route) => {
   breadcrumbNameMap[route.path as string] = route.label;
 });
 
-const useStyles = makeStyles(() =>
+const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     linkRouter: {
-      color: '#4db5ab',
+      color: theme.palette.secondary.main,
       '&:focus, &:active': {
-        color: '#4db5ab',
+        color: theme.palette.secondary.main,
         textDecoration: 'none',
       },
       '&:hover': {
-        color: '#055a52',
+        color: theme.palette.secondary.dark,
         textDecoration: 'none',
       },
     },
