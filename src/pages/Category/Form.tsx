@@ -9,6 +9,7 @@ import {
   Theme,
 } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 import categoryHttp from '../../util/http/category-http';
 
 interface Category {
@@ -24,6 +25,10 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }));
 
+const validationSchema = Yup.object().shape({
+  name: Yup.string().required(),
+});
+
 const Form: React.FC = () => {
   const classes = useStyles();
 
@@ -33,7 +38,8 @@ const Form: React.FC = () => {
     variant: 'contained',
   };
 
-  const { register, handleSubmit, getValues } = useForm({
+  const { register, handleSubmit, getValues, errors } = useForm<Category>({
+    validationSchema,
     defaultValues: {
       // eslint-disable-next-line @typescript-eslint/camelcase
       is_active: true,
@@ -49,7 +55,15 @@ const Form: React.FC = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <TextField name="name" label="Nome" fullWidth variant="outlined" inputRef={register} />
+      <TextField
+        name="name"
+        label="Nome"
+        fullWidth
+        variant="outlined"
+        inputRef={register}
+        error={errors.name !== undefined}
+        helperText={errors.name && errors.name.message}
+      />
       <TextField
         name="description"
         label="Descrição"
