@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router';
+import { useHistory, useParams } from 'react-router';
 import {
   Box,
   Button,
@@ -36,6 +36,7 @@ const validationSchema = Yup.object().shape({
 
 const Form: React.FC = () => {
   const { id } = useParams();
+  const history = useHistory();
   const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -82,7 +83,15 @@ const Form: React.FC = () => {
       : categoryHttp.update(category.id, formData);
 
     http
-      .then((response) => console.log(response.data.data))
+      .then((response) => {
+        setTimeout(() => {
+          event
+            ? id
+              ? history.replace(`/categories/${response.data.data.id}/edit`)
+              : history.push(`/categories/${response.data.data.id}/edit`)
+            : history.push('/categories');
+        });
+      })
       .catch((error) => console.log(error))
       .finally(() => setLoading(false));
   }
