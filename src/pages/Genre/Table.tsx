@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Chip } from '@material-ui/core';
+import { Link } from 'react-router-dom';
 import MUIDataTable, { MUIDataTableColumn } from 'mui-datatables';
 import genreHttp from '../../util/http/genre-http';
 import { formatDate } from '../../util/format';
+import { BadgeNo, BadgeYes } from '../../components/Badge';
 
 interface Category {
   name: string;
@@ -27,11 +28,7 @@ const columnsDefinition: MUIDataTableColumn[] = [
     label: 'Ativo?',
     options: {
       customBodyRender(value, tableMeta, updateValue) {
-        return value ? (
-          <Chip label="Sim" color="primary" />
-        ) : (
-          <Chip label="Não" color="secondary" />
-        );
+        return value ? <BadgeYes /> : <BadgeNo />;
       },
     },
   },
@@ -41,6 +38,31 @@ const columnsDefinition: MUIDataTableColumn[] = [
     options: {
       customBodyRender(value, tableMeta, updateValue) {
         return formatDate(value, "dd/MM/yyyy 'às' H:mm");
+      },
+    },
+  },
+  {
+    name: 'id',
+    label: 'Ações',
+    options: {
+      sort: false,
+      print: false,
+      filter: false,
+      searchable: false,
+      setCellProps: (value) => ({
+        style: {
+          width: '10%',
+          whiteSpace: 'nowrap',
+        },
+      }),
+      customBodyRender(value, tableMeta, updateValue) {
+        return (
+          <>
+            <Link to={`/genres/${value}/edit`}>editar</Link>
+            {' | '}
+            <Link to={`/genres/${value}/delete`}>deletar</Link>
+          </>
+        );
       },
     },
   },

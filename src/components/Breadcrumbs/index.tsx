@@ -4,7 +4,7 @@ import Container from '@material-ui/core/Container';
 import Typography from '@material-ui/core/Typography';
 import MUIBreadcrumbs from '@material-ui/core/Breadcrumbs';
 import Box from '@material-ui/core/Box';
-import { createStyles, makeStyles } from '@material-ui/core/styles';
+import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import { Route } from 'react-router';
 import { Link as RouterLink } from 'react-router-dom';
 import { Location } from 'history';
@@ -16,16 +16,16 @@ routes.forEach((route) => {
   breadcrumbNameMap[route.path as string] = route.label;
 });
 
-const useStyles = makeStyles(() =>
+const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     linkRouter: {
-      color: '#4db5ab',
+      color: theme.palette.secondary.main,
       '&:focus, &:active': {
-        color: '#4db5ab',
+        color: theme.palette.secondary.main,
         textDecoration: 'none',
       },
       '&:hover': {
-        color: '#055a52',
+        color: theme.palette.secondary.dark,
         textDecoration: 'none',
       },
     },
@@ -37,9 +37,7 @@ interface LinkRouterProps extends LinkProps {
   replace?: boolean;
 }
 
-const LinkRouter = (props: LinkRouterProps) => (
-  <Link {...props} component={RouterLink as any} />
-);
+const LinkRouter = (props: LinkRouterProps) => <Link {...props} component={RouterLink as any} />;
 
 export default function Breadcrumbs() {
   const classes = useStyles();
@@ -67,12 +65,7 @@ export default function Breadcrumbs() {
               {breadcrumbNameMap[route]}
             </Typography>
           ) : (
-            <LinkRouter
-              color="inherit"
-              to={to}
-              key={to}
-              className={classes.linkRouter}
-            >
+            <LinkRouter color="inherit" to={to} key={to} className={classes.linkRouter}>
               {breadcrumbNameMap[route]}
             </LinkRouter>
           );
@@ -83,7 +76,7 @@ export default function Breadcrumbs() {
 
   return (
     <Container>
-      <Box paddingBottom={2}>
+      <Box paddingTop={2} paddingBottom={1}>
         <Route>{({ location }) => makeBreadcrumbs(location)}</Route>
       </Box>
     </Container>

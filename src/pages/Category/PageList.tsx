@@ -7,8 +7,14 @@ import Table from './Table';
 
 const PageList: React.FC = () => (
   <Page title="Listagem categorias">
-    <Box dir="rtl">
-      <Fab title="Adicionar categoria" size="small" component={Link} to="/categories/create">
+    <Box dir="rtl" paddingBottom={2}>
+      <Fab
+        title="Adicionar categoria"
+        color="secondary"
+        size="small"
+        component={Link}
+        to="/categories/create"
+      >
         <AddIcon />
       </Fab>
     </Box>

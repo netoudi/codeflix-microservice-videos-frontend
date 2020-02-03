@@ -39,12 +39,17 @@ module.exports = {
         extensions: ['.tsx'],
       },
     ],
+    'no-nested-ternary': 'off',
+    'no-unused-expressions': 'off',
+    'react/jsx-wrap-multilines': ['error', { arrow: true, return: true, declaration: true }],
+    'implicit-arrow-linebreak': 'off',
     'react/jsx-props-no-spreading': 'off',
     'react/jsx-one-expression-per-line': 'off',
     'import/prefer-default-export': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-member-accessibility': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/camelcase': 'off',
   },
   settings: {
     'import/parsers': {

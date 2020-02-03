@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Chip } from '@material-ui/core';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import MUIDataTable, { MUIDataTableColumn } from 'mui-datatables';
 import categoryHttp from '../../util/http/category-http';
 import { formatDate } from '../../util/format';
+import { BadgeNo, BadgeYes } from '../../components/Badge';
 
 const columnsDefinition: MUIDataTableColumn[] = [
   {
@@ -14,11 +15,7 @@ const columnsDefinition: MUIDataTableColumn[] = [
     label: 'Ativo?',
     options: {
       customBodyRender(value, tableMeta, updateValue) {
-        return value ? (
-          <Chip label="Sim" color="primary" />
-        ) : (
-          <Chip label="Não" color="secondary" />
-        );
+        return value ? <BadgeYes /> : <BadgeNo />;
       },
     },
   },
@@ -28,6 +25,31 @@ const columnsDefinition: MUIDataTableColumn[] = [
     options: {
       customBodyRender(value, tableMeta, updateValue) {
         return formatDate(value, "dd/MM/yyyy 'às' H:mm");
+      },
+    },
+  },
+  {
+    name: 'id',
+    label: 'Ações',
+    options: {
+      sort: false,
+      print: false,
+      filter: false,
+      searchable: false,
+      setCellProps: (value) => ({
+        style: {
+          width: '10%',
+          whiteSpace: 'nowrap',
+        },
+      }),
+      customBodyRender(value, tableMeta, updateValue) {
+        return (
+          <>
+            <Link to={`/categories/${value}/edit`}>editar</Link>
+            {' | '}
+            <Link to={`/categories/${value}/delete`}>deletar</Link>
+          </>
+        );
       },
     },
   },

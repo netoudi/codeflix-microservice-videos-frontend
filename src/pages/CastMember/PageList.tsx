@@ -8,9 +8,15 @@ import Table from './Table';
 type ListProps = {};
 
 const PageList: React.FC = (props: ListProps) => (
-  <Page title="Listagem de membros">
-    <Box dir="rtl">
-      <Fab title="Adicionar membro" size="small" component={Link} to="/cast-members/create">
+  <Page title="Listagem de membros de elencos">
+    <Box dir="rtl" paddingBottom={2}>
+      <Fab
+        title="Adicionar membro de elenco"
+        color="secondary"
+        size="small"
+        component={Link}
+        to="/cast-members/create"
+      >
         <AddIcon />
       </Fab>
     </Box>
