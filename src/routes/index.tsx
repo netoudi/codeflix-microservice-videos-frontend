@@ -59,7 +59,7 @@ const routes: MyRouteProps[] = [
     name: 'cast_members.edit',
     label: 'Editar membro de elenco',
     path: '/cast-members/:id/edit',
-    component: CastMemberList,
+    component: CastMemberForm,
     exact: true,
   },
   {
@@ -80,7 +80,7 @@ const routes: MyRouteProps[] = [
     name: 'genres.edit',
     label: 'Editar gênero',
     path: '/genres/:id/edit',
-    component: GenreList,
+    component: GenreForm,
     exact: true,
   },
 ];

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import MUIDataTable, { MUIDataTableColumn } from 'mui-datatables';
 import categoryHttp from '../../util/http/category-http';
 import { formatDate } from '../../util/format';
@@ -24,6 +25,31 @@ const columnsDefinition: MUIDataTableColumn[] = [
     options: {
       customBodyRender(value, tableMeta, updateValue) {
         return formatDate(value, "dd/MM/yyyy 'às' H:mm");
+      },
+    },
+  },
+  {
+    name: 'id',
+    label: 'Ações',
+    options: {
+      sort: false,
+      print: false,
+      filter: false,
+      searchable: false,
+      setCellProps: (value) => ({
+        style: {
+          width: '10%',
+          whiteSpace: 'nowrap',
+        },
+      }),
+      customBodyRender(value, tableMeta, updateValue) {
+        return (
+          <>
+            <Link to={`/categories/${value}/edit`}>editar</Link>
+            {' | '}
+            <Link to={`/categories/${value}/delete`}>deletar</Link>
+          </>
+        );
       },
     },
   },
