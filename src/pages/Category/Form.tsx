@@ -68,24 +68,27 @@ const Form: React.FC = () => {
 
     setLoading(true);
 
-    categoryHttp
-      .get<{ data: Category }>(id)
-      .then((response) => {
+    (async () => {
+      try {
+        const response = await categoryHttp.get<{ data: Category }>(id);
         setCategory(response.data.data);
         reset(response.data.data);
-      })
-      .finally(() => setLoading(false));
+      } catch (error) {
+        snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []); // eslint-disable-line
 
   function onSubmit(formData, event) {
     setLoading(true);
 
-    const http = !category
-      ? categoryHttp.create(formData)
-      : categoryHttp.update(category.id, formData);
-
-    http
-      .then((response) => {
+    (async () => {
+      try {
+        const response = !category
+          ? await categoryHttp.create(formData)
+          : await categoryHttp.update(category.id, formData);
         snackbar.enqueueSnackbar('Categoria salva com sucesso.', { variant: 'success' });
         setTimeout(() => {
           event
@@ -94,12 +97,12 @@ const Form: React.FC = () => {
               : history.push(`/categories/${response.data.data.id}/edit`)
             : history.push('/categories');
         });
-      })
-      .catch((error) => {
+      } catch (error) {
         snackbar.enqueueSnackbar('Não foi possível salvar a categoria.', { variant: 'error' });
-        console.log(error);
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    })();
   }
 
   return (

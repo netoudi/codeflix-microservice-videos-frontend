@@ -66,7 +66,10 @@ const Table: React.FC = (props: TableProps) => {
   const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
-    categoryHttp.list<{ data: Category[] }>().then((response) => setCategories(response.data.data));
+    (async () => {
+      const response = await categoryHttp.list<{ data: Category[] }>();
+      setCategories(response.data.data);
+    })();
   }, []);
 
   return <MUIDataTable title="" columns={columnsDefinition} data={categories} />;
