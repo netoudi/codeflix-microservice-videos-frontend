@@ -66,10 +66,18 @@ const Table: React.FC = (props: TableProps) => {
   const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
+    // componentDidMount
+    let isSubscribed = true;
+
     (async () => {
       const response = await categoryHttp.list<{ data: Category[] }>();
-      setCategories(response.data.data);
+      if (isSubscribed) setCategories(response.data.data);
     })();
+
+    // componentWillUnmount
+    return () => {
+      isSubscribed = false;
+    };
   }, []);
 
   return <MUIDataTable title="" columns={columnsDefinition} data={categories} />;
