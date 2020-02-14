@@ -1,26 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router';
-import {
-  Box,
-  Button,
-  ButtonProps,
-  Checkbox,
-  FormControlLabel,
-  makeStyles,
-  TextField,
-  Theme,
-} from '@material-ui/core';
+import { Checkbox, FormControlLabel, TextField } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
 import * as Yup from '../../util/vendor/yup';
 import categoryHttp from '../../util/http/category-http';
 import { Category, GetResponse } from '../../util/models';
-
-const useStyles = makeStyles((theme: Theme) => ({
-  submit: {
-    marginLeft: theme.spacing(1),
-  },
-}));
+import SubmitActions from '../../components/SubmitActions';
 
 const validationSchema = Yup.object().shape({
   name: Yup.string()
@@ -36,19 +22,18 @@ const Form: React.FC = () => {
   const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const classes = useStyles();
-
-  const buttonProps: ButtonProps = {
-    className: classes.submit,
-    color: 'secondary',
-    variant: 'contained',
-    disabled: loading,
-  };
-
-  const { register, handleSubmit, getValues, setValue, errors, reset, watch } = useForm<Category>({
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    setValue,
+    errors,
+    reset,
+    watch,
+    triggerValidation,
+  } = useForm<Category>({
     validationSchema,
     defaultValues: {
-      // eslint-disable-next-line @typescript-eslint/camelcase
       is_active: true,
     },
   });
@@ -137,14 +122,12 @@ const Form: React.FC = () => {
         label="Ativo?"
         labelPlacement="end"
       />
-      <Box dir="rtl">
-        <Button {...buttonProps} onClick={() => onSubmit(getValues(), null)}>
-          Salvar
-        </Button>
-        <Button {...buttonProps} type="submit">
-          Salvar e continuar editando
-        </Button>
-      </Box>
+      <SubmitActions
+        disabledButtons={loading}
+        handleSave={() => {
+          triggerValidation().then((isValid) => isValid && onSubmit(getValues(), null));
+        }}
+      />
     </form>
   );
 };
