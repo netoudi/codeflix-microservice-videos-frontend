@@ -89,27 +89,39 @@ const Form: React.FC = () => {
   }, [register]);
 
   useEffect(() => {
-    categoryHttp
-      .list()
-      .then((response) => {
-        setCategories(response.data.data);
-      })
-      .then(() => {
-        if (!id) return;
+    let isSubscribed = true;
 
-        setLoading(true);
+    (async () => {
+      setLoading(true);
 
-        genreHttp
-          .get<{ data: Genre }>(id)
-          .then((response) => {
-            setGenre(response.data.data);
+      try {
+        const promises = [categoryHttp.list()];
+
+        if (id) promises.push(genreHttp.get(id));
+
+        const [categoryResponse, genreResponse] = await Promise.all(promises);
+
+        if (isSubscribed) {
+          setCategories(categoryResponse.data.data);
+
+          if (id) {
+            setGenre(genreResponse.data.data);
             reset({
-              ...response.data.data,
-              categories_id: response.data.data.categories.map((category) => category.id),
+              ...genreResponse.data.data,
+              categories_id: genreResponse.data.data.categories.map((category) => category.id),
             });
-          })
-          .finally(() => setLoading(false));
-      });
+          }
+        }
+      } catch (error) {
+        snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
+      } finally {
+        setLoading(false);
+      }
+    })();
+
+    return () => {
+      isSubscribed = false;
+    };
   }, []); // eslint-disable-line
 
   const handleChange = (event) => {
