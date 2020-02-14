@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import MUIDataTable, { MUIDataTableColumn } from 'mui-datatables';
 import castMemberHttp from '../../util/http/cast-member-http';
 import { formatDate } from '../../util/format';
+import { CastMember, ListResponse } from '../../util/models';
 
 const columnsDefinition: MUIDataTableColumn[] = [
   {
@@ -57,10 +58,12 @@ const columnsDefinition: MUIDataTableColumn[] = [
 type TableProps = {};
 
 const Table: React.FC = (props: TableProps) => {
-  const [castMembers, setCastMembers] = useState([]);
+  const [castMembers, setCastMembers] = useState<CastMember[]>([]);
 
   useEffect(() => {
-    castMemberHttp.list().then((response) => setCastMembers(response.data.data));
+    castMemberHttp
+      .list<ListResponse<CastMember>>()
+      .then((response) => setCastMembers(response.data.data));
   }, []);
 
   return <MUIDataTable title="" columns={columnsDefinition} data={castMembers} />;

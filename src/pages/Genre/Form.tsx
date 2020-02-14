@@ -16,26 +16,7 @@ import { useSnackbar } from 'notistack';
 import * as Yup from '../../util/vendor/yup';
 import genreHttp from '../../util/http/genre-http';
 import categoryHttp from '../../util/http/category-http';
-
-interface Category {
-  id: string;
-  name: string;
-  description: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string;
-}
-
-interface Genre {
-  id: string;
-  name: string;
-  categories: Category[];
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string;
-}
+import { Category, Genre } from '../../util/models';
 
 interface GenreForm {
   name: string;

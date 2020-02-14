@@ -14,13 +14,7 @@ import { useForm } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
 import * as Yup from '../../util/vendor/yup';
 import categoryHttp from '../../util/http/category-http';
-
-interface Category {
-  id: string;
-  name: string;
-  description: string;
-  is_active: boolean;
-}
+import { Category, GetResponse } from '../../util/models';
 
 const useStyles = makeStyles((theme: Theme) => ({
   submit: {
@@ -70,7 +64,7 @@ const Form: React.FC = () => {
 
     (async () => {
       try {
-        const response = await categoryHttp.get<{ data: Category }>(id);
+        const response = await categoryHttp.get<GetResponse<Category>>(id);
         setCategory(response.data.data);
         reset(response.data.data);
       } catch (error) {

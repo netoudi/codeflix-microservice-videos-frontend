@@ -4,10 +4,7 @@ import MUIDataTable, { MUIDataTableColumn } from 'mui-datatables';
 import genreHttp from '../../util/http/genre-http';
 import { formatDate } from '../../util/format';
 import { BadgeNo, BadgeYes } from '../../components/Badge';
-
-interface Category {
-  name: string;
-}
+import { Category, Genre, ListResponse } from '../../util/models';
 
 const columnsDefinition: MUIDataTableColumn[] = [
   {
@@ -71,10 +68,10 @@ const columnsDefinition: MUIDataTableColumn[] = [
 type TableProps = {};
 
 const Table: React.FC = (props: TableProps) => {
-  const [genres, setGenres] = useState([]);
+  const [genres, setGenres] = useState<Genre[]>([]);
 
   useEffect(() => {
-    genreHttp.list().then((response) => setGenres(response.data.data));
+    genreHttp.list<ListResponse<Genre>>().then((response) => setGenres(response.data.data));
   }, []);
 
   return <MUIDataTable title="" columns={columnsDefinition} data={genres} />;

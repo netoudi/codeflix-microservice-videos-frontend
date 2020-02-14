@@ -4,6 +4,7 @@ import MUIDataTable, { MUIDataTableColumn } from 'mui-datatables';
 import categoryHttp from '../../util/http/category-http';
 import { formatDate } from '../../util/format';
 import { BadgeNo, BadgeYes } from '../../components/Badge';
+import { Category, ListResponse } from '../../util/models';
 
 const columnsDefinition: MUIDataTableColumn[] = [
   {
@@ -55,11 +56,6 @@ const columnsDefinition: MUIDataTableColumn[] = [
   },
 ];
 
-interface Category {
-  id: string;
-  name: string;
-}
-
 type TableProps = {};
 
 const Table: React.FC = (props: TableProps) => {
@@ -70,7 +66,7 @@ const Table: React.FC = (props: TableProps) => {
     let isSubscribed = true;
 
     (async () => {
-      const response = await categoryHttp.list<{ data: Category[] }>();
+      const response = await categoryHttp.list<ListResponse<Category>>();
       if (isSubscribed) setCategories(response.data.data);
     })();
 

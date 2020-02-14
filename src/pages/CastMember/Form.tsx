@@ -18,15 +18,7 @@ import { useForm } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
 import * as Yup from '../../util/vendor/yup';
 import castMemberHttp from '../../util/http/cast-member-http';
-
-interface CastMember {
-  id: string;
-  name: string;
-  type: number;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string;
-}
+import { CastMember, GetResponse } from '../../util/models';
 
 const useStyles = makeStyles((theme: Theme) => ({
   submit: {
@@ -73,7 +65,7 @@ const Form: React.FC = () => {
     setLoading(true);
 
     castMemberHttp
-      .get<{ data: CastMember }>(id)
+      .get<GetResponse<CastMember>>(id)
       .then((response) => {
         setCastMember(response.data.data);
         reset(response.data.data);
