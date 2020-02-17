@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MUIDataTableColumn } from 'mui-datatables';
 import castMemberHttp from '../../util/http/cast-member-http';
 import { formatDate } from '../../util/format';
 import { CastMember, ListResponse } from '../../util/models';
-import DefaultTable from '../../components/DefaultTable';
+import DefaultTable, { TableColumn } from '../../components/DefaultTable';
 
-const columnsDefinition: MUIDataTableColumn[] = [
+const columnsDefinition: TableColumn[] = [
   {
     name: 'name',
     label: 'Nome',
@@ -14,6 +13,7 @@ const columnsDefinition: MUIDataTableColumn[] = [
   {
     name: 'type',
     label: 'Tipo',
+    width: '15%',
     options: {
       customBodyRender(value, tableMeta, updateValue) {
         return ['-', 'Diretor', 'Ator'][value] || '-';
@@ -23,6 +23,7 @@ const columnsDefinition: MUIDataTableColumn[] = [
   {
     name: 'created_at',
     label: 'Criado em',
+    width: '15%',
     options: {
       customBodyRender(value, tableMeta, updateValue) {
         return formatDate(value, "dd/MM/yyyy 'às' H:mm");

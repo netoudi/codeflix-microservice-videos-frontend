@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MUIDataTableColumn } from 'mui-datatables';
 import genreHttp from '../../util/http/genre-http';
 import { formatDate } from '../../util/format';
-import DefaultTable from '../../components/DefaultTable';
+import DefaultTable, { TableColumn } from '../../components/DefaultTable';
 import { BadgeNo, BadgeYes } from '../../components/Badge';
 import { Category, Genre, ListResponse } from '../../util/models';
 
-const columnsDefinition: MUIDataTableColumn[] = [
+const columnsDefinition: TableColumn[] = [
   {
     name: 'name',
     label: 'Nome',
@@ -24,6 +23,7 @@ const columnsDefinition: MUIDataTableColumn[] = [
   {
     name: 'is_active',
     label: 'Ativo?',
+    width: '15%',
     options: {
       customBodyRender(value, tableMeta, updateValue) {
         return value ? <BadgeYes /> : <BadgeNo />;
@@ -33,6 +33,7 @@ const columnsDefinition: MUIDataTableColumn[] = [
   {
     name: 'created_at',
     label: 'Criado em',
+    width: '15%',
     options: {
       customBodyRender(value, tableMeta, updateValue) {
         return formatDate(value, "dd/MM/yyyy 'às' H:mm");

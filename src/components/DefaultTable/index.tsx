@@ -1,6 +1,15 @@
 import * as React from 'react';
-import MUIDataTable, { MUIDataTableOptions, MUIDataTableProps } from 'mui-datatables';
-import { merge } from 'lodash';
+import MUIDataTable, {
+  MUIDataTableColumn,
+  MUIDataTableOptions,
+  MUIDataTableProps,
+} from 'mui-datatables';
+import { cloneDeep, merge, omit } from 'lodash';
+import { MuiThemeProvider, Theme, useTheme } from '@material-ui/core';
+
+export interface TableColumn extends MUIDataTableColumn {
+  width?: string;
+}
 
 const defaultOptions: MUIDataTableOptions = {
   print: false,
@@ -40,12 +49,38 @@ const defaultOptions: MUIDataTableOptions = {
   },
 };
 
-type DefaultTableProps = MUIDataTableProps;
+interface DefaultTableProps extends MUIDataTableProps {
+  columns: TableColumn[];
+}
 
 const DefaultTable: React.FC<DefaultTableProps> = (props) => {
-  const newProps = merge({ options: defaultOptions }, props);
+  function extractMUIDataTableColumns(columns: TableColumn[]): MUIDataTableColumn[] {
+    setColumnsWith(columns);
+    return columns.map((column) => omit(column, 'width'));
+  }
 
-  return <MUIDataTable {...newProps} />;
+  function setColumnsWith(columns: TableColumn[]) {
+    columns.forEach((column, key) => {
+      if (column.width) {
+        const overrides = theme.overrides as any;
+        overrides.MUIDataTableHeadCell.fixedHeaderCommon[`&:nth-child(${key + 2})`] = {
+          width: column.width,
+        };
+      }
+    });
+  }
+
+  const theme = cloneDeep<Theme>(useTheme());
+
+  const newProps = merge({ options: defaultOptions }, props, {
+    columns: extractMUIDataTableColumns(props.columns),
+  });
+
+  return (
+    <MuiThemeProvider theme={theme}>
+      <MUIDataTable {...newProps} />
+    </MuiThemeProvider>
+  );
 };
 
 export default DefaultTable;
