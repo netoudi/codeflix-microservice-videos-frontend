@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import MUIDataTable, { MUIDataTableColumn } from 'mui-datatables';
+import { MUIDataTableColumn } from 'mui-datatables';
 import genreHttp from '../../util/http/genre-http';
 import { formatDate } from '../../util/format';
+import DefaultTable from '../../components/DefaultTable';
 import { BadgeNo, BadgeYes } from '../../components/Badge';
 import { Category, Genre, ListResponse } from '../../util/models';
 
@@ -74,7 +75,7 @@ const Table: React.FC = (props: TableProps) => {
     genreHttp.list<ListResponse<Genre>>().then((response) => setGenres(response.data.data));
   }, []);
 
-  return <MUIDataTable title="" columns={columnsDefinition} data={genres} />;
+  return <DefaultTable title="" columns={columnsDefinition} data={genres} />;
 };
 
 export default Table;

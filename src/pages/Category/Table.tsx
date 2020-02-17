@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import MUIDataTable, { MUIDataTableColumn } from 'mui-datatables';
+import { MUIDataTableColumn } from 'mui-datatables';
 import categoryHttp from '../../util/http/category-http';
 import { formatDate } from '../../util/format';
+import DefaultTable from '../../components/DefaultTable';
 import { BadgeNo, BadgeYes } from '../../components/Badge';
 import { Category, ListResponse } from '../../util/models';
 
@@ -76,7 +77,7 @@ const Table: React.FC = (props: TableProps) => {
     };
   }, []);
 
-  return <MUIDataTable title="" columns={columnsDefinition} data={categories} />;
+  return <DefaultTable title="" columns={columnsDefinition} data={categories} />;
 };
 
 export default Table;

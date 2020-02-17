@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import MUIDataTable, { MUIDataTableColumn } from 'mui-datatables';
+import { MUIDataTableColumn } from 'mui-datatables';
 import castMemberHttp from '../../util/http/cast-member-http';
 import { formatDate } from '../../util/format';
 import { CastMember, ListResponse } from '../../util/models';
+import DefaultTable from '../../components/DefaultTable';
 
 const columnsDefinition: MUIDataTableColumn[] = [
   {
@@ -66,7 +67,7 @@ const Table: React.FC = (props: TableProps) => {
       .then((response) => setCastMembers(response.data.data));
   }, []);
 
-  return <MUIDataTable title="" columns={columnsDefinition} data={castMembers} />;
+  return <DefaultTable title="" columns={columnsDefinition} data={castMembers} />;
 };
 
 export default Table;
