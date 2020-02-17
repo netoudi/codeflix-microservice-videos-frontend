@@ -8,6 +8,7 @@ import genreHttp from '../../util/http/genre-http';
 import categoryHttp from '../../util/http/category-http';
 import { Category, Genre } from '../../util/models';
 import SubmitActions from '../../components/SubmitActions';
+import DefaultForm from '../../components/DefaultForm';
 
 interface GenreForm {
   name: string;
@@ -119,7 +120,7 @@ const Form: React.FC = () => {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <DefaultForm onSubmit={handleSubmit(onSubmit)}>
       <pre style={{ padding: 20, backgroundColor: '#3333', fontSize: 16 }}>
         {JSON.stringify(errors, null, 2)}
       </pre>
@@ -177,7 +178,7 @@ const Form: React.FC = () => {
           triggerValidation().then((isValid) => isValid && onSubmit(getValues(), null));
         }}
       />
-    </form>
+    </DefaultForm>
   );
 };
 

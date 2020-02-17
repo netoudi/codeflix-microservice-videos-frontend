@@ -7,6 +7,7 @@ import * as Yup from '../../util/vendor/yup';
 import categoryHttp from '../../util/http/category-http';
 import { Category, GetResponse } from '../../util/models';
 import SubmitActions from '../../components/SubmitActions';
+import DefaultForm from '../../components/DefaultForm';
 
 const validationSchema = Yup.object().shape({
   name: Yup.string()
@@ -85,7 +86,7 @@ const Form: React.FC = () => {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <DefaultForm onSubmit={handleSubmit(onSubmit)}>
       <TextField
         name="name"
         label="Nome"
@@ -128,7 +129,7 @@ const Form: React.FC = () => {
           triggerValidation().then((isValid) => isValid && onSubmit(getValues(), null));
         }}
       />
-    </form>
+    </DefaultForm>
   );
 };
 
