@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useSnackbar } from 'notistack';
 import categoryHttp from '../../util/http/category-http';
 import { formatDate } from '../../util/format';
 import DefaultTable, { TableColumn } from '../../components/DefaultTable';
@@ -61,24 +62,34 @@ const columnsDefinition: TableColumn[] = [
 type TableProps = {};
 
 const Table: React.FC = (props: TableProps) => {
+  const snackbar = useSnackbar();
   const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     // componentDidMount
     let isSubscribed = true;
 
     (async () => {
-      const response = await categoryHttp.list<ListResponse<Category>>();
-      if (isSubscribed) setCategories(response.data.data);
+      setLoading(true);
+
+      try {
+        const response = await categoryHttp.list<ListResponse<Category>>();
+        if (isSubscribed) setCategories(response.data.data);
+      } catch (error) {
+        snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
+      } finally {
+        setLoading(false);
+      }
     })();
 
     // componentWillUnmount
     return () => {
       isSubscribed = false;
     };
-  }, []);
+  }, []); // eslint-disable-line
 
-  return <DefaultTable title="" columns={columnsDefinition} data={categories} />;
+  return <DefaultTable title="" columns={columnsDefinition} data={categories} loading={loading} />;
 };
 
 export default Table;

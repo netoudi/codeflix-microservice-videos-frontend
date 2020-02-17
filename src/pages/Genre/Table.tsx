@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useSnackbar } from 'notistack';
 import genreHttp from '../../util/http/genre-http';
 import { formatDate } from '../../util/format';
 import DefaultTable, { TableColumn } from '../../components/DefaultTable';
@@ -70,13 +71,32 @@ const columnsDefinition: TableColumn[] = [
 type TableProps = {};
 
 const Table: React.FC = (props: TableProps) => {
+  const snackbar = useSnackbar();
   const [genres, setGenres] = useState<Genre[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    genreHttp.list<ListResponse<Genre>>().then((response) => setGenres(response.data.data));
-  }, []);
+    let isSubscribed = true;
 
-  return <DefaultTable title="" columns={columnsDefinition} data={genres} />;
+    (async () => {
+      setLoading(true);
+
+      try {
+        const response = await genreHttp.list<ListResponse<Genre>>();
+        if (isSubscribed) setGenres(response.data.data);
+      } catch (error) {
+        snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
+      } finally {
+        setLoading(false);
+      }
+    })();
+
+    return () => {
+      isSubscribed = false;
+    };
+  }, []); // eslint-disable-line
+
+  return <DefaultTable title="" columns={columnsDefinition} data={genres} loading={loading} />;
 };
 
 export default Table;

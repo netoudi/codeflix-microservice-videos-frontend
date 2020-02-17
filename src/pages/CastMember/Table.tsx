@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useSnackbar } from 'notistack';
 import castMemberHttp from '../../util/http/cast-member-http';
 import { formatDate } from '../../util/format';
 import { CastMember, ListResponse } from '../../util/models';
@@ -60,15 +61,32 @@ const columnsDefinition: TableColumn[] = [
 type TableProps = {};
 
 const Table: React.FC = (props: TableProps) => {
+  const snackbar = useSnackbar();
   const [castMembers, setCastMembers] = useState<CastMember[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    castMemberHttp
-      .list<ListResponse<CastMember>>()
-      .then((response) => setCastMembers(response.data.data));
-  }, []);
+    let isSubscribed = true;
 
-  return <DefaultTable title="" columns={columnsDefinition} data={castMembers} />;
+    (async () => {
+      setLoading(true);
+
+      try {
+        const response = await castMemberHttp.list<ListResponse<CastMember>>();
+        if (isSubscribed) setCastMembers(response.data.data);
+      } catch (error) {
+        snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
+      } finally {
+        setLoading(false);
+      }
+    })();
+
+    return () => {
+      isSubscribed = false;
+    };
+  }, []); // eslint-disable-line
+
+  return <DefaultTable title="" columns={columnsDefinition} data={castMembers} loading={loading} />;
 };
 
 export default Table;
