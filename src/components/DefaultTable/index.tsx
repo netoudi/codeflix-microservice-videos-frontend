@@ -5,7 +5,7 @@ import MUIDataTable, {
   MUIDataTableProps,
 } from 'mui-datatables';
 import { cloneDeep, merge, omit } from 'lodash';
-import { MuiThemeProvider, Theme, useTheme } from '@material-ui/core';
+import { MuiThemeProvider, Theme, useMediaQuery, useTheme } from '@material-ui/core';
 
 export interface TableColumn extends MUIDataTableColumn {
   width?: string;
@@ -80,13 +80,19 @@ const DefaultTable: React.FC<DefaultTableProps> = (props) => {
     return omit(newProps, 'loading');
   }
 
+  function applyResponsive() {
+    newProps.options.responsive = isSmOrDown ? 'scrollMaxHeight' : 'stacked';
+  }
+
   const theme = cloneDeep<Theme>(useTheme());
+  const isSmOrDown = useMediaQuery(theme.breakpoints.down('sm'));
 
   const newProps = merge({ options: cloneDeep(defaultOptions) }, props, {
     columns: extractMUIDataTableColumns(props.columns),
   });
 
   applyLoading();
+  applyResponsive();
 
   const originalProps = getOriginalMUIDataTableProps();
 
