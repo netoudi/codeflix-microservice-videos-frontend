@@ -6,6 +6,7 @@ import { formatDate } from '../../util/format';
 import DefaultTable, { TableColumn } from '../../components/DefaultTable';
 import { BadgeNo, BadgeYes } from '../../components/Badge';
 import { Category, ListResponse } from '../../util/models';
+import FilterResetButton from '../../components/DefaultTable/FilterResetButton';
 
 interface Pagination {
   page: number;
@@ -79,11 +80,7 @@ const columnsDefinition: TableColumn[] = [
 type TableProps = {};
 
 const Table: React.FC = (props: TableProps) => {
-  const snackbar = useSnackbar();
-  const subscribed = useRef(true);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [searchState, setSearchState] = useState<SearchState>({
+  const INITIAL_STATE = {
     search: '',
     pagination: {
       page: 1,
@@ -94,7 +91,13 @@ const Table: React.FC = (props: TableProps) => {
       sort: null,
       dir: null,
     },
-  });
+  };
+
+  const snackbar = useSnackbar();
+  const subscribed = useRef(true);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [searchState, setSearchState] = useState<SearchState>(INITIAL_STATE);
 
   const columns = columnsDefinition.map((column) => {
     if (column.name !== searchState.order.sort) return column;
@@ -114,6 +117,7 @@ const Table: React.FC = (props: TableProps) => {
     return () => {
       subscribed.current = false;
     };
+    // eslint-disable-next-line
   }, [
     searchState.search,
     searchState.pagination.page,
@@ -167,6 +171,9 @@ const Table: React.FC = (props: TableProps) => {
         page: searchState.pagination.page - 1,
         rowsPerPage: searchState.pagination.per_page,
         count: searchState.pagination.total,
+        customToolbar: () => (
+          <FilterResetButton handleClick={() => setSearchState(INITIAL_STATE)} />
+        ),
         onSearchChange: (value) =>
           setSearchState((prevState) => ({
             ...prevState,
