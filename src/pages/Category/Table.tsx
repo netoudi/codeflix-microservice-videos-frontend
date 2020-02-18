@@ -147,6 +147,7 @@ const Table: React.FC = (props: TableProps) => {
         }));
       }
     } catch (error) {
+      if (categoryHttp.isCancelledRequest(error)) return;
       snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
     } finally {
       setLoading(false);
