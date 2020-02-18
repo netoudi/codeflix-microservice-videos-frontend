@@ -7,8 +7,15 @@ import DefaultTable, { TableColumn } from '../../components/DefaultTable';
 import { BadgeNo, BadgeYes } from '../../components/Badge';
 import { Category, ListResponse } from '../../util/models';
 
+interface Pagination {
+  page: number;
+  total: number;
+  per_page: number;
+}
+
 interface SearchState {
   search: string;
+  pagination: Pagination;
 }
 
 const columnsDefinition: TableColumn[] = [
@@ -70,7 +77,14 @@ const Table: React.FC = (props: TableProps) => {
   const subscribed = useRef(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [searchState, setSearchState] = useState<SearchState>({ search: '' });
+  const [searchState, setSearchState] = useState<SearchState>({
+    search: '',
+    pagination: {
+      page: 1,
+      total: 0,
+      per_page: 10,
+    },
+  });
 
   useEffect(() => {
     subscribed.current = true;
@@ -78,16 +92,31 @@ const Table: React.FC = (props: TableProps) => {
     return () => {
       subscribed.current = false;
     };
-  }, [searchState]);
+  }, [searchState.search, searchState.pagination.page, searchState.pagination.per_page]); // eslint-disable-line
 
   async function getData() {
     setLoading(true);
 
     try {
       const response = await categoryHttp.list<ListResponse<Category>>({
-        queryParams: searchState.search,
+        queryParams: {
+          search: searchState.search,
+          page: searchState.pagination.page,
+          per_page: searchState.pagination.per_page,
+        },
       });
-      if (subscribed.current) setCategories(response.data.data);
+      if (subscribed.current) {
+        setCategories(response.data.data);
+        setSearchState((prevState) => ({
+          ...searchState,
+          pagination: {
+            ...prevState.pagination,
+            page: response.data.meta.current_page,
+            total: response.data.meta.total,
+            per_page: response.data.meta.per_page,
+          },
+        }));
+      }
     } catch (error) {
       snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
     } finally {
@@ -102,9 +131,34 @@ const Table: React.FC = (props: TableProps) => {
       data={categories}
       loading={loading}
       options={{
+        serverSide: true,
         responsive: 'scrollMaxHeight',
         searchText: searchState.search,
-        onSearchChange: (value) => setSearchState({ search: value }),
+        page: searchState.pagination.page - 1,
+        rowsPerPage: searchState.pagination.per_page,
+        count: searchState.pagination.total,
+        onSearchChange: (value) =>
+          setSearchState((prevState) => ({
+            ...prevState,
+            search: value,
+          })),
+        onChangePage: (page) =>
+          setSearchState((prevState) => ({
+            ...prevState,
+            pagination: {
+              ...prevState.pagination,
+              page: page + 1,
+            },
+          })),
+        onChangeRowsPerPage: (perPage) =>
+          setSearchState((prevState) => ({
+            ...prevState,
+            pagination: {
+              ...prevState.pagination,
+              page: 1,
+              per_page: perPage,
+            },
+          })),
       }}
     />
   );
