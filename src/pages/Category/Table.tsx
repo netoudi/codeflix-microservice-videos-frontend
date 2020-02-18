@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import categoryHttp from '../../util/http/category-http';
@@ -6,6 +6,10 @@ import { formatDate } from '../../util/format';
 import DefaultTable, { TableColumn } from '../../components/DefaultTable';
 import { BadgeNo, BadgeYes } from '../../components/Badge';
 import { Category, ListResponse } from '../../util/models';
+
+interface SearchState {
+  search: string;
+}
 
 const columnsDefinition: TableColumn[] = [
   {
@@ -63,33 +67,47 @@ type TableProps = {};
 
 const Table: React.FC = (props: TableProps) => {
   const snackbar = useSnackbar();
+  const subscribed = useRef(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [searchState, setSearchState] = useState<SearchState>({ search: '' });
 
   useEffect(() => {
-    // componentDidMount
-    let isSubscribed = true;
-
-    (async () => {
-      setLoading(true);
-
-      try {
-        const response = await categoryHttp.list<ListResponse<Category>>();
-        if (isSubscribed) setCategories(response.data.data);
-      } catch (error) {
-        snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
-      } finally {
-        setLoading(false);
-      }
-    })();
-
-    // componentWillUnmount
+    subscribed.current = true;
+    getData();
     return () => {
-      isSubscribed = false;
+      subscribed.current = false;
     };
-  }, []); // eslint-disable-line
+  }, [searchState]);
 
-  return <DefaultTable title="" columns={columnsDefinition} data={categories} loading={loading} />;
+  async function getData() {
+    setLoading(true);
+
+    try {
+      const response = await categoryHttp.list<ListResponse<Category>>({
+        queryParams: searchState.search,
+      });
+      if (subscribed.current) setCategories(response.data.data);
+    } catch (error) {
+      snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <DefaultTable
+      title=""
+      columns={columnsDefinition}
+      data={categories}
+      loading={loading}
+      options={{
+        responsive: 'scrollMaxHeight',
+        searchText: searchState.search,
+        onSearchChange: (value) => setSearchState({ search: value }),
+      }}
+    />
+  );
 };
 
 export default Table;
