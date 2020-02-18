@@ -13,9 +13,15 @@ interface Pagination {
   per_page: number;
 }
 
+interface Order {
+  sort: string | null;
+  dir: string | null;
+}
+
 interface SearchState {
   search: string;
   pagination: Pagination;
+  order: Order;
 }
 
 const columnsDefinition: TableColumn[] = [
@@ -84,6 +90,22 @@ const Table: React.FC = (props: TableProps) => {
       total: 0,
       per_page: 10,
     },
+    order: {
+      sort: null,
+      dir: null,
+    },
+  });
+
+  const columns = columnsDefinition.map((column) => {
+    if (column.name !== searchState.order.sort) return column;
+
+    return {
+      ...column,
+      options: {
+        ...column.options,
+        sortDirection: searchState.order.dir as any,
+      },
+    };
   });
 
   useEffect(() => {
@@ -92,7 +114,12 @@ const Table: React.FC = (props: TableProps) => {
     return () => {
       subscribed.current = false;
     };
-  }, [searchState.search, searchState.pagination.page, searchState.pagination.per_page]); // eslint-disable-line
+  }, [
+    searchState.search,
+    searchState.pagination.page,
+    searchState.pagination.per_page,
+    searchState.order,
+  ]);
 
   async function getData() {
     setLoading(true);
@@ -103,6 +130,8 @@ const Table: React.FC = (props: TableProps) => {
           search: searchState.search,
           page: searchState.pagination.page,
           per_page: searchState.pagination.per_page,
+          sort: searchState.order.sort,
+          dir: searchState.order.dir,
         },
       });
       if (subscribed.current) {
@@ -127,7 +156,7 @@ const Table: React.FC = (props: TableProps) => {
   return (
     <DefaultTable
       title=""
-      columns={columnsDefinition}
+      columns={columns}
       data={categories}
       loading={loading}
       options={{
@@ -157,6 +186,14 @@ const Table: React.FC = (props: TableProps) => {
               ...prevState.pagination,
               page: 1,
               per_page: perPage,
+            },
+          })),
+        onColumnSortChange: (changedColumn, direction) =>
+          setSearchState((prevState) => ({
+            ...prevState,
+            order: {
+              sort: changedColumn,
+              dir: direction.includes('desc') ? 'desc' : 'asc',
             },
           })),
       }}
