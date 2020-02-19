@@ -6,24 +6,8 @@ import { formatDate } from '../../util/format';
 import DefaultTable, { TableColumn } from '../../components/DefaultTable';
 import { BadgeNo, BadgeYes } from '../../components/Badge';
 import { Category, ListResponse } from '../../util/models';
-import FilterResetButton from '../../components/DefaultTable/FilterResetButton';
-
-interface Pagination {
-  page: number;
-  total: number;
-  per_page: number;
-}
-
-interface Order {
-  sort: string | null;
-  dir: string | null;
-}
-
-interface SearchState {
-  search: string;
-  pagination: Pagination;
-  order: Order;
-}
+// import FilterResetButton from '../../components/DefaultTable/FilterResetButton';
+import reducer, { Creators, INITIAL_STATE } from '../../store/search';
 
 const columnsDefinition: TableColumn[] = [
   {
@@ -77,72 +61,6 @@ const columnsDefinition: TableColumn[] = [
   },
 ];
 
-const INITIAL_STATE = {
-  search: '',
-  pagination: {
-    page: 1,
-    total: 0,
-    per_page: 10,
-  },
-  order: {
-    sort: null,
-    dir: null,
-  },
-};
-
-function reducer(state, action) {
-  switch (action.type) {
-    case 'search':
-      return {
-        ...state,
-        search: action.search,
-        pagination: {
-          ...state.pagination,
-          page: 1,
-        },
-      };
-    case 'page':
-      return {
-        ...state,
-        pagination: {
-          ...state.pagination,
-          page: action.page,
-        },
-      };
-    case 'per_page':
-      return {
-        ...state,
-        pagination: {
-          ...state.pagination,
-          page: 1,
-          per_page: action.perPage,
-        },
-      };
-    case 'order':
-      return {
-        ...state,
-        order: {
-          sort: action.sort,
-          dir: action.dir,
-        },
-      };
-    case 'pagination':
-      return {
-        ...state,
-        pagination: {
-          ...state.pagination,
-          page: action.page,
-          total: action.total,
-          per_page: action.per_page,
-        },
-      };
-    case 'reset':
-      return INITIAL_STATE;
-    default:
-      throw new Error();
-  }
-}
-
 type TableProps = {};
 
 const Table: React.FC = (props: TableProps) => {
@@ -151,7 +69,6 @@ const Table: React.FC = (props: TableProps) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [searchState, dispatch] = useReducer(reducer, INITIAL_STATE);
-  // const [searchState, setSearchState] = useState<SearchState>(INITIAL_STATE);
 
   const columns = columnsDefinition.map((column) => {
     if (column.name !== searchState.order.sort) return column;
@@ -194,12 +111,12 @@ const Table: React.FC = (props: TableProps) => {
       });
       if (subscribed.current) {
         setCategories(response.data.data);
-        dispatch({
-          type: 'pagination',
-          page: response.data.meta.current_page,
-          total: response.data.meta.total,
-          per_page: response.data.meta.per_page,
-        });
+        // dispatch({
+        //   type: 'pagination',
+        //   page: response.data.meta.current_page,
+        //   total: response.data.meta.total,
+        //   per_page: response.data.meta.per_page,
+        // });
       }
     } catch (error) {
       if (categoryHttp.isCancelledRequest(error)) return;
@@ -227,20 +144,21 @@ const Table: React.FC = (props: TableProps) => {
       options={{
         serverSide: true,
         responsive: 'scrollMaxHeight',
-        searchText: searchState.search,
+        searchText: searchState.search as any,
         page: searchState.pagination.page - 1,
         rowsPerPage: searchState.pagination.per_page,
         count: searchState.pagination.total,
-        customToolbar: () => <FilterResetButton handleClick={() => dispatch({ type: 'reset' })} />,
-        onSearchChange: (value) => dispatch({ type: 'search', search: value }),
-        onChangePage: (page) => dispatch({ type: 'page', page: page + 1 }),
-        onChangeRowsPerPage: (perPage) => dispatch({ type: 'per_page', per_page: perPage }),
+        // customToolbar: () => <FilterResetButton handleClick={() => dispatch({ type: 'reset' })} />,
+        onSearchChange: (value) => dispatch(Creators.setSearch({ search: value })),
+        onChangePage: (page) => dispatch(Creators.setPage({ page: page + 1 })),
+        onChangeRowsPerPage: (perPage) => dispatch(Creators.setPerPage({ per_page: perPage })),
         onColumnSortChange: (changedColumn, direction) =>
-          dispatch({
-            type: 'order',
-            sort: changedColumn,
-            dir: direction.includes('desc') ? 'desc' : 'asc',
-          }),
+          dispatch(
+            Creators.setOrder({
+              sort: changedColumn,
+              dir: direction.includes('desc') ? 'desc' : 'asc',
+            }),
+          ),
       }}
     />
   );

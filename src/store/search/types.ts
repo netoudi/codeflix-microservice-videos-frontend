@@ -12,7 +12,7 @@ export interface Order {
 }
 
 export interface State {
-  search: string;
+  search: string | { value; [key: string]: any };
   pagination: Pagination;
   order: Order;
 }
@@ -41,3 +41,19 @@ export interface SetOrderAction extends AnyAction {
     dir: string | null;
   };
 }
+
+export type ActionTypes = {
+  SET_SEARCH: string;
+  SET_PAGE: string;
+  SET_PER_PAGE: string;
+  SET_ORDER: string;
+};
+
+export type ActionCreators = {
+  setSearch(payload: SetSearchAction['payload']): SetSearchAction;
+  setPage(payload: SetPageAction['payload']): SetPageAction;
+  setPerPage(payload: SetPerPageAction['payload']): SetPerPageAction;
+  setOrder(payload: SetOrderAction['payload']): SetOrderAction;
+};
+
+export type Actions = SetSearchAction | SetPageAction | SetPerPageAction | SetOrderAction;
