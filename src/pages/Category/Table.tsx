@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useReducer, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import categoryHttp from '../../util/http/category-http';
@@ -77,27 +77,81 @@ const columnsDefinition: TableColumn[] = [
   },
 ];
 
+const INITIAL_STATE = {
+  search: '',
+  pagination: {
+    page: 1,
+    total: 0,
+    per_page: 10,
+  },
+  order: {
+    sort: null,
+    dir: null,
+  },
+};
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'search':
+      return {
+        ...state,
+        search: action.search,
+        pagination: {
+          ...state.pagination,
+          page: 1,
+        },
+      };
+    case 'page':
+      return {
+        ...state,
+        pagination: {
+          ...state.pagination,
+          page: action.page,
+        },
+      };
+    case 'per_page':
+      return {
+        ...state,
+        pagination: {
+          ...state.pagination,
+          page: 1,
+          per_page: action.perPage,
+        },
+      };
+    case 'order':
+      return {
+        ...state,
+        order: {
+          sort: action.sort,
+          dir: action.dir,
+        },
+      };
+    case 'pagination':
+      return {
+        ...state,
+        pagination: {
+          ...state.pagination,
+          page: action.page,
+          total: action.total,
+          per_page: action.per_page,
+        },
+      };
+    case 'reset':
+      return INITIAL_STATE;
+    default:
+      throw new Error();
+  }
+}
+
 type TableProps = {};
 
 const Table: React.FC = (props: TableProps) => {
-  const INITIAL_STATE = {
-    search: '',
-    pagination: {
-      page: 1,
-      total: 0,
-      per_page: 10,
-    },
-    order: {
-      sort: null,
-      dir: null,
-    },
-  };
-
   const snackbar = useSnackbar();
   const subscribed = useRef(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [searchState, setSearchState] = useState<SearchState>(INITIAL_STATE);
+  const [searchState, dispatch] = useReducer(reducer, INITIAL_STATE);
+  // const [searchState, setSearchState] = useState<SearchState>(INITIAL_STATE);
 
   const columns = columnsDefinition.map((column) => {
     if (column.name !== searchState.order.sort) return column;
@@ -140,15 +194,12 @@ const Table: React.FC = (props: TableProps) => {
       });
       if (subscribed.current) {
         setCategories(response.data.data);
-        setSearchState((prevState) => ({
-          ...searchState,
-          pagination: {
-            ...prevState.pagination,
-            page: response.data.meta.current_page,
-            total: response.data.meta.total,
-            per_page: response.data.meta.per_page,
-          },
-        }));
+        dispatch({
+          type: 'pagination',
+          page: response.data.meta.current_page,
+          total: response.data.meta.total,
+          per_page: response.data.meta.per_page,
+        });
       }
     } catch (error) {
       if (categoryHttp.isCancelledRequest(error)) return;
@@ -180,49 +231,16 @@ const Table: React.FC = (props: TableProps) => {
         page: searchState.pagination.page - 1,
         rowsPerPage: searchState.pagination.per_page,
         count: searchState.pagination.total,
-        customToolbar: () => (
-          <FilterResetButton
-            handleClick={() =>
-              setSearchState({
-                ...INITIAL_STATE,
-                search: {
-                  value: INITIAL_STATE.search,
-                  updated: true,
-                } as any,
-              })
-            }
-          />
-        ),
-        onSearchChange: (value) =>
-          setSearchState((prevState) => ({
-            ...prevState,
-            search: value,
-          })),
-        onChangePage: (page) =>
-          setSearchState((prevState) => ({
-            ...prevState,
-            pagination: {
-              ...prevState.pagination,
-              page: page + 1,
-            },
-          })),
-        onChangeRowsPerPage: (perPage) =>
-          setSearchState((prevState) => ({
-            ...prevState,
-            pagination: {
-              ...prevState.pagination,
-              page: 1,
-              per_page: perPage,
-            },
-          })),
+        customToolbar: () => <FilterResetButton handleClick={() => dispatch({ type: 'reset' })} />,
+        onSearchChange: (value) => dispatch({ type: 'search', search: value }),
+        onChangePage: (page) => dispatch({ type: 'page', page: page + 1 }),
+        onChangeRowsPerPage: (perPage) => dispatch({ type: 'per_page', per_page: perPage }),
         onColumnSortChange: (changedColumn, direction) =>
-          setSearchState((prevState) => ({
-            ...prevState,
-            order: {
-              sort: changedColumn,
-              dir: direction.includes('desc') ? 'desc' : 'asc',
-            },
-          })),
+          dispatch({
+            type: 'order',
+            sort: changedColumn,
+            dir: direction.includes('desc') ? 'desc' : 'asc',
+          }),
       }}
     />
   );
