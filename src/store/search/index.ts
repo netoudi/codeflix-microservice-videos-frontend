@@ -6,10 +6,11 @@ export const { Types, Creators } = createActions<Typings.ActionTypes, Typings.Ac
   setPage: ['payload'],
   setPerPage: ['payload'],
   setOrder: ['payload'],
+  setReset: [],
 });
 
 export const INITIAL_STATE: Typings.State = {
-  search: '',
+  search: null,
   pagination: {
     page: 1,
     total: 0,
@@ -26,6 +27,7 @@ const reducer = createReducer<Typings.State, Typings.Actions>(INITIAL_STATE, {
   [Types.SET_PAGE]: setPage as any,
   [Types.SET_PER_PAGE]: setPerPage as any,
   [Types.SET_ORDER]: setOrder as any,
+  [Types.SET_RESET]: setReset as any,
 });
 
 function setSearch(state = INITIAL_STATE, action: Typings.SetSearchAction): Typings.State {
@@ -66,6 +68,16 @@ function setOrder(state = INITIAL_STATE, action: Typings.SetOrderAction): Typing
     order: {
       sort: action.payload.sort,
       dir: action.payload.dir,
+    },
+  };
+}
+
+function setReset(state = INITIAL_STATE, action): Typings.State {
+  return {
+    ...INITIAL_STATE,
+    search: {
+      value: null,
+      update: true,
     },
   };
 }

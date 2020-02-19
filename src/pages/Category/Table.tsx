@@ -6,7 +6,7 @@ import { formatDate } from '../../util/format';
 import DefaultTable, { TableColumn } from '../../components/DefaultTable';
 import { BadgeNo, BadgeYes } from '../../components/Badge';
 import { Category, ListResponse } from '../../util/models';
-// import FilterResetButton from '../../components/DefaultTable/FilterResetButton';
+import FilterResetButton from '../../components/DefaultTable/FilterResetButton';
 import reducer, { Creators, INITIAL_STATE } from '../../store/search';
 
 const columnsDefinition: TableColumn[] = [
@@ -68,6 +68,7 @@ const Table: React.FC = (props: TableProps) => {
   const subscribed = useRef(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [totalRecords, setTotalRecords] = useState<number>(0);
   const [searchState, dispatch] = useReducer(reducer, INITIAL_STATE);
 
   const columns = columnsDefinition.map((column) => {
@@ -111,12 +112,7 @@ const Table: React.FC = (props: TableProps) => {
       });
       if (subscribed.current) {
         setCategories(response.data.data);
-        // dispatch({
-        //   type: 'pagination',
-        //   page: response.data.meta.current_page,
-        //   total: response.data.meta.total,
-        //   per_page: response.data.meta.per_page,
-        // });
+        setTotalRecords(response.data.meta.total);
       }
     } catch (error) {
       if (categoryHttp.isCancelledRequest(error)) return;
@@ -147,8 +143,10 @@ const Table: React.FC = (props: TableProps) => {
         searchText: searchState.search as any,
         page: searchState.pagination.page - 1,
         rowsPerPage: searchState.pagination.per_page,
-        count: searchState.pagination.total,
-        // customToolbar: () => <FilterResetButton handleClick={() => dispatch({ type: 'reset' })} />,
+        count: totalRecords,
+        customToolbar: () => (
+          <FilterResetButton handleClick={() => dispatch(Creators.setReset())} />
+        ),
         onSearchChange: (value) => dispatch(Creators.setSearch({ search: value })),
         onChangePage: (page) => dispatch(Creators.setPage({ page: page + 1 })),
         onChangeRowsPerPage: (perPage) => dispatch(Creators.setPerPage({ per_page: perPage })),
