@@ -131,7 +131,7 @@ const Table: React.FC = (props: TableProps) => {
     try {
       const response = await categoryHttp.list<ListResponse<Category>>({
         queryParams: {
-          search: searchState.search,
+          search: cleanSearchText(searchState.search),
           page: searchState.pagination.page,
           per_page: searchState.pagination.per_page,
           sort: searchState.order.sort,
@@ -158,12 +158,21 @@ const Table: React.FC = (props: TableProps) => {
     }
   }
 
+  function cleanSearchText(text) {
+    let newText = text;
+    if (text && text.value !== undefined) {
+      newText = text.value;
+    }
+    return newText;
+  }
+
   return (
     <DefaultTable
       title=""
       columns={columns}
       data={categories}
       loading={loading}
+      debouncedSearchTime={500}
       options={{
         serverSide: true,
         responsive: 'scrollMaxHeight',
@@ -172,7 +181,17 @@ const Table: React.FC = (props: TableProps) => {
         rowsPerPage: searchState.pagination.per_page,
         count: searchState.pagination.total,
         customToolbar: () => (
-          <FilterResetButton handleClick={() => setSearchState(INITIAL_STATE)} />
+          <FilterResetButton
+            handleClick={() =>
+              setSearchState({
+                ...INITIAL_STATE,
+                search: {
+                  value: INITIAL_STATE.search,
+                  updated: true,
+                } as any,
+              })
+            }
+          />
         ),
         onSearchChange: (value) =>
           setSearchState((prevState) => ({

@@ -39,6 +39,8 @@ module.exports = {
         extensions: ['.tsx'],
       },
     ],
+    'react/prop-types': 'off',
+    'react/destructuring-assignment': 'off',
     'no-nested-ternary': 'off',
     'no-unused-expressions': 'off',
     'react/jsx-wrap-multilines': ['error', { arrow: true, return: true, declaration: true }],
