@@ -40,6 +40,7 @@ module.exports = {
       },
     ],
     'react/prop-types': 'off',
+    'class-methods-use-this': 'off',
     'react/destructuring-assignment': 'off',
     'no-nested-ternary': 'off',
     'no-unused-expressions': 'off',

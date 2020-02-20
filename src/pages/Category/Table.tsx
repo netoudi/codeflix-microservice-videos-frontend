@@ -10,6 +10,9 @@ import FilterResetButton from '../../components/DefaultTable/FilterResetButton';
 import { Creators } from '../../store/filter';
 import useFilter from '../../hooks/useFilter';
 
+const DEBOUNCE_TIME = 300;
+const DEBOUNCE_SEARCH_TIME = 300;
+
 const columnsDefinition: TableColumn[] = [
   {
     name: 'name',
@@ -73,6 +76,7 @@ const Table: React.FC = (props: TableProps) => {
     columns,
     filterManager,
     filterState,
+    debounceFilterState,
     dispatch,
     totalRecords,
     setTotalRecords,
@@ -80,7 +84,7 @@ const Table: React.FC = (props: TableProps) => {
     columns: columnsDefinition,
     rowsPerPage: 10,
     rowsPerPageOptions: [10, 25, 50],
-    debounceTime: 500,
+    debounceTime: DEBOUNCE_TIME,
   });
 
   useEffect(() => {
@@ -91,10 +95,10 @@ const Table: React.FC = (props: TableProps) => {
     };
     // eslint-disable-next-line
   }, [
-    filterState.search,
-    filterState.pagination.page,
-    filterState.pagination.per_page,
-    filterState.order,
+    filterManager.cleanSearchText(debounceFilterState.search), // eslint-disable-line
+    debounceFilterState.pagination.page,
+    debounceFilterState.pagination.per_page,
+    debounceFilterState.order,
   ]);
 
   async function getData() {
@@ -103,7 +107,7 @@ const Table: React.FC = (props: TableProps) => {
     try {
       const response = await categoryHttp.list<ListResponse<Category>>({
         queryParams: {
-          search: cleanSearchText(filterState.search),
+          search: filterManager.cleanSearchText(filterState.search),
           page: filterState.pagination.page,
           per_page: filterState.pagination.per_page,
           sort: filterState.order.sort,
@@ -122,21 +126,13 @@ const Table: React.FC = (props: TableProps) => {
     }
   }
 
-  function cleanSearchText(text) {
-    let newText = text;
-    if (text && text.value !== undefined) {
-      newText = text.value;
-    }
-    return newText;
-  }
-
   return (
     <DefaultTable
       title=""
       columns={columns}
       data={categories}
       loading={loading}
-      debouncedSearchTime={500}
+      debouncedSearchTime={DEBOUNCE_SEARCH_TIME}
       options={{
         serverSide: true,
         responsive: 'scrollMaxHeight',

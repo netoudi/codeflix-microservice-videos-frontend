@@ -1,5 +1,6 @@
 import { Dispatch, Reducer, useReducer, useState } from 'react';
 import { MUIDataTableColumn } from 'mui-datatables';
+import { useDebounce } from 'use-debounce';
 import reducer, { Creators, INITIAL_STATE } from '../store/filter';
 import { Actions as FilterActions, State as FilterState } from '../store/filter/types';
 
@@ -16,6 +17,7 @@ export default function useFilter(options: FilterManagerOptions) {
     reducer,
     INITIAL_STATE,
   );
+  const [debounceFilterState] = useDebounce(filterState, options.debounceTime);
   const [totalRecords, setTotalRecords] = useState<number>(0);
 
   filterManager.state = filterState;
@@ -27,6 +29,7 @@ export default function useFilter(options: FilterManagerOptions) {
     columns: filterManager.columns,
     filterManager,
     filterState,
+    debounceFilterState,
     dispatch,
     totalRecords,
     setTotalRecords,
@@ -84,5 +87,13 @@ class FilterManager {
         },
       };
     });
+  }
+
+  cleanSearchText(text) {
+    let newText = text;
+    if (text && text.value !== undefined) {
+      newText = text.value;
+    }
+    return newText;
   }
 }
