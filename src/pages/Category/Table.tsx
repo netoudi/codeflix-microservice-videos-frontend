@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import categoryHttp from '../../util/http/category-http';
@@ -7,7 +7,8 @@ import DefaultTable, { TableColumn } from '../../components/DefaultTable';
 import { BadgeNo, BadgeYes } from '../../components/Badge';
 import { Category, ListResponse } from '../../util/models';
 import FilterResetButton from '../../components/DefaultTable/FilterResetButton';
-import reducer, { Creators, INITIAL_STATE } from '../../store/filter';
+import { Creators } from '../../store/filter';
+import useFilter from '../../hooks/useFilter';
 
 const columnsDefinition: TableColumn[] = [
   {
@@ -68,8 +69,7 @@ const Table: React.FC = (props: TableProps) => {
   const subscribed = useRef(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [totalRecords, setTotalRecords] = useState<number>(0);
-  const [filterState, dispatch] = useReducer(reducer, INITIAL_STATE);
+  const { filterState, dispatch, totalRecords, setTotalRecords } = useFilter();
 
   const columns = columnsDefinition.map((column) => {
     if (column.name !== filterState.order.sort) return column;
