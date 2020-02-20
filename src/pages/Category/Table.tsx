@@ -7,7 +7,7 @@ import DefaultTable, { TableColumn } from '../../components/DefaultTable';
 import { BadgeNo, BadgeYes } from '../../components/Badge';
 import { Category, ListResponse } from '../../util/models';
 import FilterResetButton from '../../components/DefaultTable/FilterResetButton';
-import reducer, { Creators, INITIAL_STATE } from '../../store/search';
+import reducer, { Creators, INITIAL_STATE } from '../../store/filter';
 
 const columnsDefinition: TableColumn[] = [
   {
@@ -69,16 +69,16 @@ const Table: React.FC = (props: TableProps) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [totalRecords, setTotalRecords] = useState<number>(0);
-  const [searchState, dispatch] = useReducer(reducer, INITIAL_STATE);
+  const [filterState, dispatch] = useReducer(reducer, INITIAL_STATE);
 
   const columns = columnsDefinition.map((column) => {
-    if (column.name !== searchState.order.sort) return column;
+    if (column.name !== filterState.order.sort) return column;
 
     return {
       ...column,
       options: {
         ...column.options,
-        sortDirection: searchState.order.dir as any,
+        sortDirection: filterState.order.dir as any,
       },
     };
   });
@@ -91,10 +91,10 @@ const Table: React.FC = (props: TableProps) => {
     };
     // eslint-disable-next-line
   }, [
-    searchState.search,
-    searchState.pagination.page,
-    searchState.pagination.per_page,
-    searchState.order,
+    filterState.search,
+    filterState.pagination.page,
+    filterState.pagination.per_page,
+    filterState.order,
   ]);
 
   async function getData() {
@@ -103,11 +103,11 @@ const Table: React.FC = (props: TableProps) => {
     try {
       const response = await categoryHttp.list<ListResponse<Category>>({
         queryParams: {
-          search: cleanSearchText(searchState.search),
-          page: searchState.pagination.page,
-          per_page: searchState.pagination.per_page,
-          sort: searchState.order.sort,
-          dir: searchState.order.dir,
+          search: cleanSearchText(filterState.search),
+          page: filterState.pagination.page,
+          per_page: filterState.pagination.per_page,
+          sort: filterState.order.sort,
+          dir: filterState.order.dir,
         },
       });
       if (subscribed.current) {
@@ -140,9 +140,9 @@ const Table: React.FC = (props: TableProps) => {
       options={{
         serverSide: true,
         responsive: 'scrollMaxHeight',
-        searchText: searchState.search as any,
-        page: searchState.pagination.page - 1,
-        rowsPerPage: searchState.pagination.per_page,
+        searchText: filterState.search as any,
+        page: filterState.pagination.page - 1,
+        rowsPerPage: filterState.pagination.per_page,
         count: totalRecords,
         customToolbar: () => (
           <FilterResetButton handleClick={() => dispatch(Creators.setReset())} />
