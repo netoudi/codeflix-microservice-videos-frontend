@@ -1,11 +1,12 @@
-import { Dispatch, Reducer, useReducer, useState } from 'react';
+import { Dispatch, Reducer, useEffect, useReducer, useState } from 'react';
 import { MUIDataTableColumn } from 'mui-datatables';
 import { useDebounce } from 'use-debounce';
 import { useHistory } from 'react-router';
 import { History } from 'history';
 import { isEqual } from 'lodash';
-import reducer, { Creators, INITIAL_STATE } from '../store/filter';
+import reducer, { Creators } from '../store/filter';
 import { Actions as FilterActions, State as FilterState } from '../store/filter/types';
+import * as Yup from '../util/vendor/yup';
 
 interface FilterManagerOptions {
   columns: MUIDataTableColumn[];
@@ -20,9 +21,10 @@ type UseFilterOptions = Omit<FilterManagerOptions, 'history'>;
 export default function useFilter(options: UseFilterOptions) {
   const history = useHistory();
   const filterManager = new FilterManager({ ...options, history });
+  const initialState = filterManager.getStateFromUrl();
   const [filterState, dispatch] = useReducer<Reducer<FilterState, FilterActions>>(
     reducer,
-    INITIAL_STATE,
+    initialState,
   );
   const [debounceFilterState] = useDebounce(filterState, options.debounceTime);
   const [totalRecords, setTotalRecords] = useState<number>(0);
@@ -31,6 +33,10 @@ export default function useFilter(options: UseFilterOptions) {
   filterManager.dispatch = dispatch;
 
   filterManager.applyOderInColumns();
+
+  useEffect(() => {
+    filterManager.replaceHistory();
+  }, []); // eslint-disable-line
 
   return {
     columns: filterManager.columns,
@@ -58,6 +64,8 @@ class FilterManager {
 
   history: History;
 
+  schema;
+
   constructor(options: FilterManagerOptions) {
     const { columns, rowsPerPage, rowsPerPageOptions, debounceTime, history } = options;
     this.columns = columns;
@@ -65,6 +73,7 @@ class FilterManager {
     this.rowsPerPageOptions = rowsPerPageOptions;
     this.debounceTime = debounceTime;
     this.history = history;
+    this.createValidationSchema();
   }
 
   changeSearch(value) {
@@ -107,6 +116,14 @@ class FilterManager {
     return newText;
   }
 
+  replaceHistory() {
+    this.history.replace({
+      pathname: this.history.location.pathname,
+      search: `?${new URLSearchParams(this.formatSearchParams() as any)}`,
+      state: this.state,
+    });
+  }
+
   pushHistory() {
     const newLocation = {
       pathname: this.history.location.pathname,
@@ -132,5 +149,55 @@ class FilterManager {
       // ...(this.state.order.sort && { sort: this.state.order.sort, dir: this.state.order.dir }),
       ...(this.state.order.sort && { ...this.state.order }),
     };
+  }
+
+  getStateFromUrl() {
+    const queryParams = new URLSearchParams(this.history.location.search.substr(1));
+
+    return this.schema.cast({
+      search: queryParams.get('search'),
+      pagination: {
+        page: queryParams.get('page'),
+        per_page: queryParams.get('per_page'),
+      },
+      order: {
+        sort: queryParams.get('sort'),
+        dir: queryParams.get('dir'),
+      },
+    });
+  }
+
+  private createValidationSchema() {
+    this.schema = Yup.object().shape({
+      search: Yup.string()
+        .transform((value) => (!value ? undefined : value))
+        .default(''),
+      pagination: Yup.object().shape({
+        page: Yup.number()
+          .transform((value) => (isNaN(value) || parseInt(value, 10) < 1 ? undefined : value))
+          .default(1),
+        per_page: Yup.number()
+          .oneOf(this.rowsPerPageOptions)
+          .transform((value) => (isNaN(value) ? undefined : value))
+          .default(this.rowsPerPage),
+      }),
+      order: Yup.object().shape({
+        sort: Yup.string()
+          .nullable()
+          .transform((value) => {
+            const columnsName = this.columns
+              .filter((column) => !column.options || column.options.sort !== false)
+              .map((column) => column.name);
+            return columnsName.includes(value) ? value : undefined;
+          })
+          .default(null),
+        dir: Yup.string()
+          .nullable()
+          .transform((value) =>
+            !value || !['asc', 'desc'].includes(value.toLowerCase()) ? undefined : value,
+          )
+          .default(null),
+      }),
+    });
   }
 }

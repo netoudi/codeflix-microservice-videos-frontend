@@ -12,6 +12,8 @@ import useFilter from '../../hooks/useFilter';
 
 const DEBOUNCE_TIME = 300;
 const DEBOUNCE_SEARCH_TIME = 300;
+const ROWS_PER_PAGE = 10;
+const ROWS_PER_PAGE_OPTIONS = [10, 25, 50];
 
 const columnsDefinition: TableColumn[] = [
   {
@@ -82,8 +84,8 @@ const Table: React.FC = (props: TableProps) => {
     setTotalRecords,
   } = useFilter({
     columns: columnsDefinition,
-    rowsPerPage: 10,
-    rowsPerPageOptions: [10, 25, 50],
+    rowsPerPage: ROWS_PER_PAGE,
+    rowsPerPageOptions: ROWS_PER_PAGE_OPTIONS,
     debounceTime: DEBOUNCE_TIME,
   });
 
@@ -140,6 +142,7 @@ const Table: React.FC = (props: TableProps) => {
         searchText: filterState.search as any,
         page: filterState.pagination.page - 1,
         rowsPerPage: filterState.pagination.per_page,
+        rowsPerPageOptions: ROWS_PER_PAGE_OPTIONS,
         count: totalRecords,
         customToolbar: () => (
           <FilterResetButton handleClick={() => dispatch(Creators.setReset())} />
