@@ -89,6 +89,7 @@ const Table: React.FC = (props: TableProps) => {
 
   useEffect(() => {
     subscribed.current = true;
+    filterManager.pushHistory();
     getData();
     return () => {
       subscribed.current = false;

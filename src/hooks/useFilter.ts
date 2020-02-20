@@ -1,6 +1,8 @@
 import { Dispatch, Reducer, useReducer, useState } from 'react';
 import { MUIDataTableColumn } from 'mui-datatables';
 import { useDebounce } from 'use-debounce';
+import { useHistory } from 'react-router';
+import { History } from 'history';
 import reducer, { Creators, INITIAL_STATE } from '../store/filter';
 import { Actions as FilterActions, State as FilterState } from '../store/filter/types';
 
@@ -9,10 +11,14 @@ interface FilterManagerOptions {
   rowsPerPage: number;
   rowsPerPageOptions: number[];
   debounceTime: number;
+  history: History;
 }
 
-export default function useFilter(options: FilterManagerOptions) {
-  const filterManager = new FilterManager(options);
+type UseFilterOptions = Omit<FilterManagerOptions, 'history'>;
+
+export default function useFilter(options: UseFilterOptions) {
+  const history = useHistory();
+  const filterManager = new FilterManager({ ...options, history });
   const [filterState, dispatch] = useReducer<Reducer<FilterState, FilterActions>>(
     reducer,
     INITIAL_STATE,
@@ -49,12 +55,15 @@ class FilterManager {
 
   debounceTime: number;
 
+  history: History;
+
   constructor(options: FilterManagerOptions) {
-    const { columns, rowsPerPage, rowsPerPageOptions, debounceTime } = options;
+    const { columns, rowsPerPage, rowsPerPageOptions, debounceTime, history } = options;
     this.columns = columns;
     this.rowsPerPage = rowsPerPage;
     this.rowsPerPageOptions = rowsPerPageOptions;
     this.debounceTime = debounceTime;
+    this.history = history;
   }
 
   changeSearch(value) {
@@ -95,5 +104,26 @@ class FilterManager {
       newText = text.value;
     }
     return newText;
+  }
+
+  pushHistory() {
+    const newLocation = {
+      pathname: this.history.location.pathname,
+      search: `?${new URLSearchParams(this.formatSearchParams() as any)}`,
+      state: { ...this.state, search: this.cleanSearchText(this.state.search) },
+    };
+    this.history.push(newLocation);
+  }
+
+  private formatSearchParams() {
+    const search = this.cleanSearchText(this.state.search);
+
+    return {
+      ...(search && search !== '' && { search }),
+      ...(this.state.pagination.page !== 1 && { page: this.state.pagination.page }),
+      ...(this.state.pagination.per_page !== 10 && { per_page: this.state.pagination.per_page }),
+      // ...(this.state.order.sort && { sort: this.state.order.sort, dir: this.state.order.dir }),
+      ...(this.state.order.sort && { ...this.state.order }),
+    };
   }
 }
