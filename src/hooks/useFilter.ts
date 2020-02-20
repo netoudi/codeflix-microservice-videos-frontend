@@ -3,6 +3,7 @@ import { MUIDataTableColumn } from 'mui-datatables';
 import { useDebounce } from 'use-debounce';
 import { useHistory } from 'react-router';
 import { History } from 'history';
+import { isEqual } from 'lodash';
 import reducer, { Creators, INITIAL_STATE } from '../store/filter';
 import { Actions as FilterActions, State as FilterState } from '../store/filter/types';
 
@@ -112,6 +113,12 @@ class FilterManager {
       search: `?${new URLSearchParams(this.formatSearchParams() as any)}`,
       state: { ...this.state, search: this.cleanSearchText(this.state.search) },
     };
+
+    const oldState = this.history.location.state;
+    const nextState = this.state;
+
+    if (isEqual(oldState, nextState)) return;
+
     this.history.push(newLocation);
   }
 
