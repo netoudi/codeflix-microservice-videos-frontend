@@ -69,18 +69,18 @@ const Table: React.FC = (props: TableProps) => {
   const subscribed = useRef(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const { filterState, dispatch, totalRecords, setTotalRecords } = useFilter();
-
-  const columns = columnsDefinition.map((column) => {
-    if (column.name !== filterState.order.sort) return column;
-
-    return {
-      ...column,
-      options: {
-        ...column.options,
-        sortDirection: filterState.order.dir as any,
-      },
-    };
+  const {
+    columns,
+    filterManager,
+    filterState,
+    dispatch,
+    totalRecords,
+    setTotalRecords,
+  } = useFilter({
+    columns: columnsDefinition,
+    rowsPerPage: 10,
+    rowsPerPageOptions: [10, 25, 50],
+    debounceTime: 500,
   });
 
   useEffect(() => {
@@ -147,16 +147,11 @@ const Table: React.FC = (props: TableProps) => {
         customToolbar: () => (
           <FilterResetButton handleClick={() => dispatch(Creators.setReset())} />
         ),
-        onSearchChange: (value) => dispatch(Creators.setSearch({ search: value })),
-        onChangePage: (page) => dispatch(Creators.setPage({ page: page + 1 })),
-        onChangeRowsPerPage: (perPage) => dispatch(Creators.setPerPage({ per_page: perPage })),
+        onSearchChange: (value) => filterManager.changeSearch(value),
+        onChangePage: (page) => filterManager.changePage(page),
+        onChangeRowsPerPage: (perPage) => filterManager.changeRowsPerPage(perPage),
         onColumnSortChange: (changedColumn, direction) =>
-          dispatch(
-            Creators.setOrder({
-              sort: changedColumn,
-              dir: direction.includes('desc') ? 'desc' : 'asc',
-            }),
-          ),
+          filterManager.changeColumnSort(changedColumn, direction),
       }}
     />
   );
