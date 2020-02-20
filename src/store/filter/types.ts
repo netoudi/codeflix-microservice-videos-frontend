@@ -15,6 +15,7 @@ export interface State {
   search: string | { value; [key: string]: any } | null;
   pagination: Pagination;
   order: Order;
+  extraFilter?: { [key: string]: any };
 }
 
 export interface SetSearchAction extends AnyAction {
@@ -42,12 +43,25 @@ export interface SetOrderAction extends AnyAction {
   };
 }
 
+export interface UpdateExtraFilterAction extends AnyAction {
+  payload: {
+    value: { [key: string]: any };
+  };
+}
+
+export interface SetResetAction extends AnyAction {
+  payload: {
+    state: State;
+  };
+}
+
 export type ActionTypes = {
   SET_SEARCH: string;
   SET_PAGE: string;
   SET_PER_PAGE: string;
   SET_ORDER: string;
   SET_RESET: string;
+  UPDATE_EXTRA_FILTER: string;
 };
 
 export type ActionCreators = {
@@ -55,7 +69,14 @@ export type ActionCreators = {
   setPage(payload: SetPageAction['payload']): SetPageAction;
   setPerPage(payload: SetPerPageAction['payload']): SetPerPageAction;
   setOrder(payload: SetOrderAction['payload']): SetOrderAction;
-  setReset();
+  setReset(payload: SetResetAction['payload']): SetResetAction;
+  updateExtraFilter(payload: UpdateExtraFilterAction['payload']): UpdateExtraFilterAction;
 };
 
-export type Actions = SetSearchAction | SetPageAction | SetPerPageAction | SetOrderAction;
+export type Actions =
+  | SetSearchAction
+  | SetPageAction
+  | SetPerPageAction
+  | SetOrderAction
+  | SetResetAction
+  | UpdateExtraFilterAction;
