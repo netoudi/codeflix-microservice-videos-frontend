@@ -118,6 +118,21 @@ class FilterManager {
     this.dispatch(
       Creators.setOrder({ sort: changedColumn, dir: direction.includes('desc') ? 'desc' : 'asc' }),
     );
+    this.resetTablePagination();
+  }
+
+  changeExtraFilter(data) {
+    this.dispatch(Creators.updateExtraFilter(data));
+  }
+
+  resetFilter() {
+    const initialState = {
+      ...this.schema.cast({}),
+      search: { value: null, update: true },
+    };
+
+    this.dispatch(Creators.setReset({ state: initialState }));
+    this.resetTablePagination();
   }
 
   applyOderInColumns() {
@@ -196,6 +211,11 @@ class FilterManager {
       },
       ...(this.extraFilter && { extraFilter: this.extraFilter.getStateFromUrl(queryParams) }),
     });
+  }
+
+  private resetTablePagination() {
+    this.tableRef.current.changePage(0);
+    this.tableRef.current.changeRowsPerPage(this.rowsPerPage);
   }
 
   private createValidationSchema() {

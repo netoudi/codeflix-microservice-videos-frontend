@@ -1,14 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { MutableRefObject, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import categoryHttp from '../../util/http/category-http';
 import { formatDate } from '../../util/format';
-import DefaultTable, { TableColumn } from '../../components/DefaultTable';
+import DefaultTable, { MuiDataTableRefComponent, TableColumn } from '../../components/DefaultTable';
 import { BadgeNo, BadgeYes } from '../../components/Badge';
 import { Category, ListResponse } from '../../util/models';
 import FilterResetButton from '../../components/DefaultTable/FilterResetButton';
-import { Creators } from '../../store/filter';
 import useFilter from '../../hooks/useFilter';
+import * as Yup from '../../util/vendor/yup';
 
 const DEBOUNCE_TIME = 300;
 const DEBOUNCE_SEARCH_TIME = 300;
@@ -19,12 +19,20 @@ const columnsDefinition: TableColumn[] = [
   {
     name: 'name',
     label: 'Nome',
+    options: {
+      filter: false,
+    },
   },
   {
     name: 'is_active',
     label: 'Ativo?',
     width: '15%',
     options: {
+      filter: true,
+      filterType: 'dropdown',
+      filterOptions: {
+        names: ['Sim', 'Não'],
+      },
       customBodyRender(value, tableMeta, updateValue) {
         return value ? <BadgeYes /> : <BadgeNo />;
       },
@@ -35,6 +43,7 @@ const columnsDefinition: TableColumn[] = [
     label: 'Criado em',
     width: '15%',
     options: {
+      filter: false,
       customBodyRender(value, tableMeta, updateValue) {
         return formatDate(value, "dd/MM/yyyy 'às' H:mm");
       },
@@ -74,6 +83,7 @@ const Table: React.FC = (props: TableProps) => {
   const subscribed = useRef(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const tableRef = useRef() as MutableRefObject<MuiDataTableRefComponent>;
   const {
     columns,
     filterManager,
@@ -87,6 +97,27 @@ const Table: React.FC = (props: TableProps) => {
     rowsPerPage: ROWS_PER_PAGE,
     rowsPerPageOptions: ROWS_PER_PAGE_OPTIONS,
     debounceTime: DEBOUNCE_TIME,
+    tableRef,
+    extraFilter: {
+      createValidationSchema: () => {
+        return Yup.object().shape({
+          is_active: Yup.boolean()
+            .nullable()
+            .transform((value) => (value === true || value === false ? value : undefined))
+            .default(null),
+        });
+      },
+      formatSearchParams: (debouncedState) => {
+        if (!debouncedState.extraFilter || debouncedState.extraFilter.is_active === null) {
+          return undefined;
+        }
+
+        return {
+          is_active: debouncedState.extraFilter.is_active,
+        };
+      },
+      getStateFromUrl: (queryParams) => ({ is_active: queryParams.get('is_active') }),
+    },
   });
 
   useEffect(() => {
@@ -102,6 +133,7 @@ const Table: React.FC = (props: TableProps) => {
     debounceFilterState.pagination.page,
     debounceFilterState.pagination.per_page,
     debounceFilterState.order,
+    JSON.stringify(debounceFilterState.extraFilter), // eslint-disable-line
   ]);
 
   async function getData() {
@@ -115,6 +147,7 @@ const Table: React.FC = (props: TableProps) => {
           per_page: filterState.pagination.per_page,
           sort: filterState.order.sort,
           dir: filterState.order.dir,
+          ...(debounceFilterState.extraFilter && { ...debounceFilterState.extraFilter }),
         },
       });
       if (subscribed.current) {
@@ -136,6 +169,7 @@ const Table: React.FC = (props: TableProps) => {
       data={categories}
       loading={loading}
       debouncedSearchTime={DEBOUNCE_SEARCH_TIME}
+      ref={tableRef}
       options={{
         serverSide: true,
         responsive: 'scrollMaxHeight',
@@ -144,9 +178,10 @@ const Table: React.FC = (props: TableProps) => {
         rowsPerPage: filterState.pagination.per_page,
         rowsPerPageOptions: ROWS_PER_PAGE_OPTIONS,
         count: totalRecords,
-        customToolbar: () => (
-          <FilterResetButton handleClick={() => dispatch(Creators.setReset())} />
-        ),
+        customToolbar: () => <FilterResetButton handleClick={() => filterManager.resetFilter()} />,
+        onFilterChange: (changedColumn, filterList) => {
+          filterManager.changeExtraFilter({ [changedColumn]: filterList[1][0] === 'Sim' });
+        },
         onSearchChange: (value) => filterManager.changeSearch(value),
         onChangePage: (page) => filterManager.changePage(page),
         onChangeRowsPerPage: (perPage) => filterManager.changeRowsPerPage(perPage),

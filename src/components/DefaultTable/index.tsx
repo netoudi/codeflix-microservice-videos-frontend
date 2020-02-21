@@ -59,13 +59,23 @@ const makeDefaultOptions = (debouncedSearchTime?): MUIDataTableOptions => ({
   ),
 });
 
-interface DefaultTableProps extends MUIDataTableProps {
+export interface MuiDataTableRefComponent {
+  changePage: (page: number) => void;
+  changeRowsPerPage: (rowsPerPage: number) => void;
+}
+
+interface DefaultTableProps
+  extends MUIDataTableProps,
+    React.RefAttributes<MuiDataTableRefComponent> {
   columns: TableColumn[];
   loading?: boolean;
   debouncedSearchTime?: number;
 }
 
-const DefaultTable: React.FC<DefaultTableProps> = (props) => {
+const DefaultTable: React.RefForwardingComponent<MuiDataTableRefComponent, DefaultTableProps> = (
+  props,
+  ref,
+) => {
   function extractMUIDataTableColumns(columns: TableColumn[]): MUIDataTableColumn[] {
     setColumnsWith(columns);
     return columns.map((column) => omit(column, 'width'));
@@ -88,7 +98,7 @@ const DefaultTable: React.FC<DefaultTableProps> = (props) => {
   }
 
   function getOriginalMUIDataTableProps() {
-    return omit(newProps, 'loading');
+    return { ...omit(newProps, 'loading'), ref };
   }
 
   function applyResponsive() {
@@ -115,4 +125,4 @@ const DefaultTable: React.FC<DefaultTableProps> = (props) => {
   );
 };
 
-export default DefaultTable;
+export default React.forwardRef(DefaultTable);
