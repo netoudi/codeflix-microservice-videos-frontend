@@ -113,6 +113,11 @@ const theme = createMuiTheme({
         color: (palette!.primary as SimplePaletteColorOptions).main,
       },
     },
+    MUIDataTableFilterList: {
+      chip: {
+        marginBottom: '8px',
+      },
+    },
   },
 });
 
