@@ -1,38 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router';
 import {
-  Box,
-  Button,
-  ButtonProps,
   FormControl,
   FormControlLabel,
   FormHelperText,
   FormLabel,
-  makeStyles,
   Radio,
   RadioGroup,
   TextField,
-  Theme,
 } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
 import * as Yup from '../../util/vendor/yup';
 import castMemberHttp from '../../util/http/cast-member-http';
-
-interface CastMember {
-  id: string;
-  name: string;
-  type: number;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string;
-}
-
-const useStyles = makeStyles((theme: Theme) => ({
-  submit: {
-    marginLeft: theme.spacing(1),
-  },
-}));
+import { CastMember, GetResponse } from '../../util/models';
+import SubmitActions from '../../components/SubmitActions';
+import DefaultForm from '../../components/DefaultForm';
 
 const validationSchema = Yup.object().shape({
   name: Yup.string()
@@ -45,23 +28,22 @@ const validationSchema = Yup.object().shape({
 });
 
 const Form: React.FC = () => {
-  const classes = useStyles();
   const { id } = useParams();
   const history = useHistory();
   const snackbar = useSnackbar();
   const [castMember, setCastMember] = useState<CastMember | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const buttonProps: ButtonProps = {
-    className: classes.submit,
-    color: 'secondary',
-    variant: 'contained',
-    disabled: loading,
-  };
-
-  const { register, handleSubmit, getValues, setValue, errors, reset, watch } = useForm<CastMember>(
-    { validationSchema },
-  );
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    setValue,
+    errors,
+    reset,
+    watch,
+    triggerValidation,
+  } = useForm<CastMember>({ validationSchema });
 
   useEffect(() => {
     register({ name: 'type' });
@@ -73,7 +55,7 @@ const Form: React.FC = () => {
     setLoading(true);
 
     castMemberHttp
-      .get<{ data: CastMember }>(id)
+      .get<GetResponse<CastMember>>(id)
       .then((response) => {
         setCastMember(response.data.data);
         reset(response.data.data);
@@ -114,7 +96,7 @@ const Form: React.FC = () => {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <DefaultForm onSubmit={handleSubmit(onSubmit)}>
       <TextField
         name="name"
         label="Nome"
@@ -146,15 +128,13 @@ const Form: React.FC = () => {
         </RadioGroup>
         {errors.type && <FormHelperText>{errors.type.message}</FormHelperText>}
       </FormControl>
-      <Box dir="rtl">
-        <Button {...buttonProps} onClick={() => onSubmit(getValues(), null)}>
-          Salvar
-        </Button>
-        <Button {...buttonProps} type="submit">
-          Salvar e continuar editando
-        </Button>
-      </Box>
-    </form>
+      <SubmitActions
+        disabledButtons={loading}
+        handleSave={() => {
+          triggerValidation().then((isValid) => isValid && onSubmit(getValues(), null));
+        }}
+      />
+    </DefaultForm>
   );
 };
 

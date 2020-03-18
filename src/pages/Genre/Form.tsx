@@ -1,53 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router';
-import {
-  Box,
-  Button,
-  ButtonProps,
-  Checkbox,
-  FormControlLabel,
-  makeStyles,
-  MenuItem,
-  TextField,
-  Theme,
-} from '@material-ui/core';
+import { Checkbox, FormControlLabel, MenuItem, TextField } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
 import * as Yup from '../../util/vendor/yup';
 import genreHttp from '../../util/http/genre-http';
 import categoryHttp from '../../util/http/category-http';
-
-interface Category {
-  id: string;
-  name: string;
-  description: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string;
-}
-
-interface Genre {
-  id: string;
-  name: string;
-  categories: Category[];
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string;
-}
+import { Category, Genre } from '../../util/models';
+import SubmitActions from '../../components/SubmitActions';
+import DefaultForm from '../../components/DefaultForm';
 
 interface GenreForm {
   name: string;
   categories_id: string[];
   is_active: boolean;
 }
-
-const useStyles = makeStyles((theme: Theme) => ({
-  submit: {
-    marginLeft: theme.spacing(1),
-  },
-}));
 
 const validationSchema = Yup.object().shape({
   name: Yup.string()
@@ -60,7 +27,6 @@ const validationSchema = Yup.object().shape({
 });
 
 const Form: React.FC = () => {
-  const classes = useStyles();
   const { id } = useParams();
   const history = useHistory();
   const snackbar = useSnackbar();
@@ -68,14 +34,16 @@ const Form: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const buttonProps: ButtonProps = {
-    className: classes.submit,
-    color: 'secondary',
-    variant: 'contained',
-    disabled: loading,
-  };
-
-  const { register, handleSubmit, getValues, setValue, errors, reset, watch } = useForm<GenreForm>({
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    setValue,
+    errors,
+    reset,
+    watch,
+    triggerValidation,
+  } = useForm<GenreForm>({
     validationSchema,
     defaultValues: {
       categories_id: [],
@@ -89,27 +57,39 @@ const Form: React.FC = () => {
   }, [register]);
 
   useEffect(() => {
-    categoryHttp
-      .list()
-      .then((response) => {
-        setCategories(response.data.data);
-      })
-      .then(() => {
-        if (!id) return;
+    let isSubscribed = true;
 
-        setLoading(true);
+    (async () => {
+      setLoading(true);
 
-        genreHttp
-          .get<{ data: Genre }>(id)
-          .then((response) => {
-            setGenre(response.data.data);
+      try {
+        const promises = [categoryHttp.list({ queryParams: { all: true } })];
+
+        if (id) promises.push(genreHttp.get(id));
+
+        const [categoryResponse, genreResponse] = await Promise.all(promises);
+
+        if (isSubscribed) {
+          setCategories(categoryResponse.data.data);
+
+          if (id) {
+            setGenre(genreResponse.data.data);
             reset({
-              ...response.data.data,
-              categories_id: response.data.data.categories.map((category) => category.id),
+              ...genreResponse.data.data,
+              categories_id: genreResponse.data.data.categories.map((category) => category.id),
             });
-          })
-          .finally(() => setLoading(false));
-      });
+          }
+        }
+      } catch (error) {
+        snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
+      } finally {
+        setLoading(false);
+      }
+    })();
+
+    return () => {
+      isSubscribed = false;
+    };
   }, []); // eslint-disable-line
 
   const handleChange = (event) => {
@@ -140,7 +120,7 @@ const Form: React.FC = () => {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <DefaultForm onSubmit={handleSubmit(onSubmit)}>
       <pre style={{ padding: 20, backgroundColor: '#3333', fontSize: 16 }}>
         {JSON.stringify(errors, null, 2)}
       </pre>
@@ -192,15 +172,13 @@ const Form: React.FC = () => {
         label="Ativo?"
         labelPlacement="end"
       />
-      <Box dir="rtl">
-        <Button {...buttonProps} onClick={() => onSubmit(getValues(), null)}>
-          Salvar
-        </Button>
-        <Button {...buttonProps} type="submit">
-          Salvar e continuar editando
-        </Button>
-      </Box>
-    </form>
+      <SubmitActions
+        disabledButtons={loading}
+        handleSave={() => {
+          triggerValidation().then((isValid) => isValid && onSubmit(getValues(), null));
+        }}
+      />
+    </DefaultForm>
   );
 };
 

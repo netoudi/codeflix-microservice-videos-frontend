@@ -36,9 +36,12 @@ module.exports = {
     'react/jsx-filename-extension': [
       'error',
       {
-        extensions: ['.tsx'],
+        extensions: ['.tsx', '.js'],
       },
     ],
+    'react/prop-types': 'off',
+    'class-methods-use-this': 'off',
+    'react/destructuring-assignment': 'off',
     'no-nested-ternary': 'off',
     'no-unused-expressions': 'off',
     'react/jsx-wrap-multilines': ['error', { arrow: true, return: true, declaration: true }],
