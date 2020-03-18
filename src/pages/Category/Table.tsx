@@ -89,7 +89,6 @@ const Table: React.FC = (props: TableProps) => {
     filterManager,
     filterState,
     debounceFilterState,
-    dispatch,
     totalRecords,
     setTotalRecords,
   } = useFilter({
@@ -101,20 +100,20 @@ const Table: React.FC = (props: TableProps) => {
     extraFilter: {
       createValidationSchema: () => {
         return Yup.object().shape({
-          is_active: Yup.boolean()
+          is_active: Yup.string()
             .nullable()
-            .transform((value) => (value === true || value === false ? value : undefined))
+            .transform((value) => (!value || !['Sim', 'Não'].includes(value) ? undefined : value))
             .default(null),
         });
       },
       formatSearchParams: (debouncedState) => {
-        if (!debouncedState.extraFilter || debouncedState.extraFilter.is_active === null) {
-          return undefined;
-        }
-
-        return {
-          is_active: debouncedState.extraFilter.is_active,
-        };
+        return debouncedState.extraFilter
+          ? {
+              ...(debouncedState.extraFilter.is_active !== null && {
+                is_active: debouncedState.extraFilter.is_active,
+              }),
+            }
+          : undefined;
       },
       getStateFromUrl: (queryParams) => ({ is_active: queryParams.get('is_active') }),
     },
@@ -136,6 +135,18 @@ const Table: React.FC = (props: TableProps) => {
     JSON.stringify(debounceFilterState.extraFilter), // eslint-disable-line
   ]);
 
+  // column is_active
+  const indexColumnIsActive = columns.findIndex((column) => column.name === 'is_active');
+  const columnIsActive = columns[indexColumnIsActive];
+  const isActiveFilterValue =
+    filterState.extraFilter && (filterState.extraFilter.is_active as never);
+  (columnIsActive.options as any).filterList = isActiveFilterValue ? [isActiveFilterValue] : [];
+
+  const serverSideFilterList = columns.map((column) => []);
+  if (isActiveFilterValue !== undefined && isActiveFilterValue !== null) {
+    serverSideFilterList[indexColumnIsActive] = [isActiveFilterValue];
+  }
+
   async function getData() {
     setLoading(true);
 
@@ -147,7 +158,10 @@ const Table: React.FC = (props: TableProps) => {
           per_page: filterState.pagination.per_page,
           sort: filterState.order.sort,
           dir: filterState.order.dir,
-          ...(debounceFilterState.extraFilter && { ...debounceFilterState.extraFilter }),
+          ...(debounceFilterState.extraFilter &&
+            debounceFilterState.extraFilter.is_active !== null && {
+              is_active: debounceFilterState.extraFilter.is_active === 'Sim',
+            }),
         },
       });
       if (subscribed.current) {
@@ -172,6 +186,7 @@ const Table: React.FC = (props: TableProps) => {
       ref={tableRef}
       options={{
         serverSide: true,
+        serverSideFilterList,
         responsive: 'scrollMaxHeight',
         searchText: filterState.search as any,
         page: filterState.pagination.page - 1,
@@ -180,7 +195,14 @@ const Table: React.FC = (props: TableProps) => {
         count: totalRecords,
         customToolbar: () => <FilterResetButton handleClick={() => filterManager.resetFilter()} />,
         onFilterChange: (changedColumn, filterList) => {
-          filterManager.changeExtraFilter({ [changedColumn]: filterList[1][0] === 'Sim' });
+          if (changedColumn === 'is_active') {
+            filterManager.changeExtraFilter({
+              [changedColumn]:
+                filterList[indexColumnIsActive][0] !== undefined
+                  ? filterList[indexColumnIsActive][0]
+                  : null,
+            });
+          }
         },
         onSearchChange: (value) => filterManager.changeSearch(value),
         onChangePage: (page) => filterManager.changePage(page),
