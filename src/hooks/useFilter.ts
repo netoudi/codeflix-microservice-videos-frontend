@@ -214,8 +214,8 @@ class FilterManager {
   }
 
   private resetTablePagination() {
-    this.tableRef.current.changePage(0);
     this.tableRef.current.changeRowsPerPage(this.rowsPerPage);
+    this.tableRef.current.changePage(0);
   }
 
   private createValidationSchema() {
