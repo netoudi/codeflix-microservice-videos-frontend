@@ -1,8 +1,8 @@
 import React, { MutableRefObject, useRef, useState } from 'react';
-import { Button, InputAdornment, TextField, TextFieldProps } from '@material-ui/core';
-import { CloudUpload } from '@material-ui/icons';
+import { InputAdornment, TextField, TextFieldProps } from '@material-ui/core';
 
 interface InputFileProps {
+  ButtonFile: React.ReactNode;
   InputFileProps?: React.DetailedHTMLProps<
     React.InputHTMLAttributes<HTMLInputElement>,
     HTMLInputElement
@@ -17,20 +17,11 @@ const InputFile: React.FC<InputFileProps> = (props) => {
   const textFieldProps: TextFieldProps = {
     fullWidth: true,
     variant: 'outlined',
+    ...props.TextFieldProps,
     InputProps: {
       readOnly: true,
-      endAdornment: (
-        <InputAdornment position="end">
-          <Button
-            endIcon={<CloudUpload />}
-            variant="contained"
-            color="primary"
-            onClick={() => fileRef.current.click()}
-          >
-            Adicionar
-          </Button>
-        </InputAdornment>
-      ),
+      ...props.TextFieldProps?.InputProps,
+      endAdornment: <InputAdornment position="end">{props.ButtonFile}</InputAdornment>,
     },
     ...props.TextFieldProps,
     value: filename,

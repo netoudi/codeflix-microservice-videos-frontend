@@ -17,7 +17,7 @@ import { GetResponse, Video } from '../../../util/models';
 import SubmitActions from '../../../components/SubmitActions';
 import DefaultForm from '../../../components/DefaultForm';
 import RatingField from './RatingField';
-import InputFile from '../../../components/InputFile';
+import UploadField from './UploadField';
 
 const validationSchema = Yup.object().shape({
   title: Yup.string()
@@ -195,7 +195,11 @@ const Form: React.FC = () => {
           <br />
           Uploads
           <br />
-          <InputFile />
+          <UploadField
+            label="Thumb"
+            accept="video/mp4"
+            setValue={(value) => setValue('thumb_file', value)}
+          />
           <br />
           <FormControlLabel
             disabled={loading}
