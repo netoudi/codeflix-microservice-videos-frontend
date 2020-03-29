@@ -22,6 +22,7 @@ import SubmitActions from '../../../components/SubmitActions';
 import DefaultForm from '../../../components/DefaultForm';
 import RatingField from './RatingField';
 import UploadField from './UploadField';
+import AsyncAutocomplete from '../../../components/AsyncAutocomplete';
 
 const useStyles = makeStyles((theme: Theme) => ({
   cardUpload: {
@@ -195,7 +196,7 @@ const Form: React.FC = () => {
           </Grid>
           Elenco
           <br />
-          Gêneros e categorias
+          <AsyncAutocomplete />
         </Grid>
         <Grid item xs={12} md={6}>
           <RatingField
