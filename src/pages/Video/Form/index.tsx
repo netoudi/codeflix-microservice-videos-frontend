@@ -16,6 +16,8 @@ import {
 import { useForm } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
 import * as Yup from '../../../util/vendor/yup';
+import genreHttp from '../../../util/http/genre-http';
+import categoryHttp from '../../../util/http/category-http';
 import videoHttp from '../../../util/http/video-http';
 import { GetResponse, Video, VideoFileFieldsMap } from '../../../util/models';
 import SubmitActions from '../../../components/SubmitActions';
@@ -129,6 +131,11 @@ const Form: React.FC = () => {
     })();
   }
 
+  const fetchOptions = (searchText) =>
+    genreHttp.list({ queryParams: { search: searchText, all: '' } }).then((response) => {
+      console.log(response.data.data);
+    });
+
   return (
     <DefaultForm GridItemProps={{ xs: 12 }} onSubmit={handleSubmit(onSubmit)}>
       <pre style={{ padding: 20, backgroundColor: '#3333', fontSize: 16 }}>
@@ -196,7 +203,7 @@ const Form: React.FC = () => {
           </Grid>
           Elenco
           <br />
-          <AsyncAutocomplete />
+          <AsyncAutocomplete fetchOptions={fetchOptions} TextFieldProps={{ label: 'Gêneros' }} />
         </Grid>
         <Grid item xs={12} md={6}>
           <RatingField

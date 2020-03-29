@@ -12,6 +12,7 @@ export const SnackbarProvider = ({ children, ...rest }) => {
       horizontal: 'right',
       vertical: 'top',
     },
+    preventDuplicate: true,
     ref: (el) => {
       snackbarProviderRef = el;
     },

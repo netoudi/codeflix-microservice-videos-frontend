@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CircularProgress, TextField, TextFieldProps } from '@material-ui/core';
 import { Autocomplete, AutocompleteProps } from '@material-ui/lab';
+import { useSnackbar } from 'notistack';
 
 interface AsyncAutocompleteProps {
+  fetchOptions: (searchText) => Promise<any>;
   TextFieldProps?: TextFieldProps;
 }
 
 const AsyncAutocomplete: React.FC<AsyncAutocompleteProps> = (props) => {
+  const snackbar = useSnackbar();
   const [open, setOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -57,6 +60,30 @@ const AsyncAutocomplete: React.FC<AsyncAutocompleteProps> = (props) => {
       );
     },
   };
+
+  useEffect(() => {
+    let isSubscribed = true;
+
+    (async () => {
+      setLoading(true);
+
+      try {
+        const response = await props.fetchOptions(searchText);
+
+        if (isSubscribed) {
+          setOptions(response.data.data);
+        }
+      } catch (error) {
+        snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
+      } finally {
+        setLoading(false);
+      }
+    })();
+
+    return () => {
+      isSubscribed = false;
+    };
+  }, [searchText]); // eslint-disable-line
 
   return <Autocomplete {...autoCompleteProps} />;
 };
