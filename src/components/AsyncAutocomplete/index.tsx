@@ -33,39 +33,39 @@ const AsyncAutocomplete: React.FC<AsyncAutocompleteProps> = (props) => {
     options,
     loading,
     onOpen() {
-      console.log('onOpen');
       setOpen(true);
       onOpen && onOpen();
     },
     onClose() {
-      console.log('onClose');
       setOpen(false);
       onClose && onClose();
     },
     onInputChange(event, value) {
-      console.log(value);
       setSearchText(value);
       onInputChange && onInputChange();
     },
-    renderInput: (params) => {
-      console.log(params);
-      return (
-        <TextField
-          {...params}
-          {...textFieldProps}
-          InputProps={{
-            ...params.InputProps,
-            endAdornment: (
-              <>
-                {loading && <CircularProgress color="inherit" size={20} />}
-                {params.InputProps.endAdornment}
-              </>
-            ),
-          }}
-        />
-      );
-    },
+    renderInput: (params) => (
+      <TextField
+        {...params}
+        {...textFieldProps}
+        InputProps={{
+          ...params.InputProps,
+          endAdornment: (
+            <>
+              {loading && <CircularProgress color="inherit" size={20} />}
+              {params.InputProps.endAdornment}
+            </>
+          ),
+        }}
+      />
+    ),
   };
+
+  useEffect(() => {
+    if (!open && !freeSolo) {
+      setOptions([]);
+    }
+  }, [open]); // eslint-disable-line
 
   useEffect(() => {
     if (!open || (searchText === '' && freeSolo)) return;

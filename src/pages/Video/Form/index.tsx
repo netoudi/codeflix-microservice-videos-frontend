@@ -132,10 +132,9 @@ const Form: React.FC = () => {
   }
 
   const fetchOptions = (searchText) =>
-    genreHttp.list({ queryParams: { search: searchText, all: '' } }).then((response) => {
-      console.log(response.data.data);
-      return response.data.data;
-    });
+    genreHttp
+      .list({ queryParams: { search: searchText, all: '' } })
+      .then((response) => response.data.data);
 
   return (
     <DefaultForm GridItemProps={{ xs: 12 }} onSubmit={handleSubmit(onSubmit)}>
