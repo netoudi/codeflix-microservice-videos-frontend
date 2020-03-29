@@ -17,6 +17,7 @@ import { GetResponse, Video } from '../../../util/models';
 import SubmitActions from '../../../components/SubmitActions';
 import DefaultForm from '../../../components/DefaultForm';
 import RatingField from './RatingField';
+import InputFile from '../../../components/InputFile';
 
 const validationSchema = Yup.object().shape({
   title: Yup.string()
@@ -193,6 +194,8 @@ const Form: React.FC = () => {
           />
           <br />
           Uploads
+          <br />
+          <InputFile />
           <br />
           <FormControlLabel
             disabled={loading}
