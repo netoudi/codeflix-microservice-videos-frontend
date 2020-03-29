@@ -6,10 +6,12 @@ import { useSnackbar } from 'notistack';
 interface AsyncAutocompleteProps {
   fetchOptions: (searchText) => Promise<any>;
   TextFieldProps?: TextFieldProps;
+  AutocompleteProps?: Omit<Omit<AutocompleteProps<any>, 'renderInput'>, 'options'>;
 }
 
 const AsyncAutocomplete: React.FC<AsyncAutocompleteProps> = (props) => {
   const snackbar = useSnackbar();
+  const { freeSolo, onOpen, onClose, onInputChange } = props.AutocompleteProps as any;
   const [open, setOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,22 +26,26 @@ const AsyncAutocomplete: React.FC<AsyncAutocompleteProps> = (props) => {
   };
 
   const autoCompleteProps: AutocompleteProps<any> = {
+    loadingText: 'Carregando...',
+    noOptionsText: 'Nenhum item encontrado',
+    ...(props.AutocompleteProps && { ...props.AutocompleteProps }),
     open,
     options,
     loading,
-    loadingText: 'Carregando...',
-    noOptionsText: 'Nenhum item encontrado',
     onOpen() {
       console.log('onOpen');
       setOpen(true);
+      onOpen && onOpen();
     },
     onClose() {
       console.log('onClose');
       setOpen(false);
+      onClose && onClose();
     },
     onInputChange(event, value) {
       console.log(value);
       setSearchText(value);
+      onInputChange && onInputChange();
     },
     renderInput: (params) => {
       console.log(params);
@@ -62,16 +68,18 @@ const AsyncAutocomplete: React.FC<AsyncAutocompleteProps> = (props) => {
   };
 
   useEffect(() => {
+    if (!open || (searchText === '' && freeSolo)) return;
+
     let isSubscribed = true;
 
     (async () => {
       setLoading(true);
 
       try {
-        const response = await props.fetchOptions(searchText);
+        const data = await props.fetchOptions(searchText);
 
         if (isSubscribed) {
-          setOptions(response.data.data);
+          setOptions(data);
         }
       } catch (error) {
         snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
@@ -83,7 +91,7 @@ const AsyncAutocomplete: React.FC<AsyncAutocompleteProps> = (props) => {
     return () => {
       isSubscribed = false;
     };
-  }, [searchText]); // eslint-disable-line
+  }, [freeSolo ? searchText : open]); // eslint-disable-line
 
   return <Autocomplete {...autoCompleteProps} />;
 };

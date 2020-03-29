@@ -134,6 +134,7 @@ const Form: React.FC = () => {
   const fetchOptions = (searchText) =>
     genreHttp.list({ queryParams: { search: searchText, all: '' } }).then((response) => {
       console.log(response.data.data);
+      return response.data.data;
     });
 
   return (
@@ -203,7 +204,11 @@ const Form: React.FC = () => {
           </Grid>
           Elenco
           <br />
-          <AsyncAutocomplete fetchOptions={fetchOptions} TextFieldProps={{ label: 'Gêneros' }} />
+          <AsyncAutocomplete
+            fetchOptions={fetchOptions}
+            AutocompleteProps={{ freeSolo: false, getOptionLabel: (option) => option.name }}
+            TextFieldProps={{ label: 'Gêneros' }}
+          />
         </Grid>
         <Grid item xs={12} md={6}>
           <RatingField
