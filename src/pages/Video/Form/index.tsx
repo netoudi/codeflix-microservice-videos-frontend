@@ -1,13 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router';
-import { Checkbox, FormControlLabel, Grid, TextField, Typography } from '@material-ui/core';
+import {
+  Checkbox,
+  FormControlLabel,
+  Grid,
+  TextField,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from '@material-ui/core';
 import { useForm } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
-import * as Yup from '../../util/vendor/yup';
-import videoHttp from '../../util/http/video-http';
-import { GetResponse, Video } from '../../util/models';
-import SubmitActions from '../../components/SubmitActions';
-import DefaultForm from '../../components/DefaultForm';
+import * as Yup from '../../../util/vendor/yup';
+import videoHttp from '../../../util/http/video-http';
+import { GetResponse, Video } from '../../../util/models';
+import SubmitActions from '../../../components/SubmitActions';
+import DefaultForm from '../../../components/DefaultForm';
+import RatingField from './RatingField';
 
 const validationSchema = Yup.object().shape({
   title: Yup.string()
@@ -38,6 +47,8 @@ const Form: React.FC = () => {
   const snackbar = useSnackbar();
   const [video, setVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const theme = useTheme();
+  const isGreaterMd = useMediaQuery(theme.breakpoints.up('md'));
 
   const {
     register,
@@ -56,7 +67,7 @@ const Form: React.FC = () => {
   });
 
   useEffect(() => {
-    register({ name: 'opened' });
+    ['rating', 'opened'].forEach((name) => register({ name }));
   }, [register]);
 
   useEffect(() => {
@@ -103,6 +114,10 @@ const Form: React.FC = () => {
 
   return (
     <DefaultForm GridItemProps={{ xs: 12 }} onSubmit={handleSubmit(onSubmit)}>
+      <pre style={{ padding: 20, backgroundColor: '#3333', fontSize: 16 }}>
+        {JSON.stringify(getValues(), null, 2)}
+      </pre>
+
       <Grid container spacing={5}>
         <Grid item xs={12} md={6}>
           <TextField
@@ -167,7 +182,15 @@ const Form: React.FC = () => {
           Gêneros e categorias
         </Grid>
         <Grid item xs={12} md={6}>
-          Classificação
+          <RatingField
+            value={watch('rating')}
+            setValue={(value) => setValue('rating', value, true)}
+            error={errors.rating}
+            disabled={loading}
+            FormControlProps={{
+              margin: isGreaterMd ? 'none' : 'normal',
+            }}
+          />
           <br />
           Uploads
           <br />
