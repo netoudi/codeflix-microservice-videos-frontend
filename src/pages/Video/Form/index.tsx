@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router';
 import {
+  Card,
+  CardContent,
   Checkbox,
   FormControlLabel,
   Grid,
+  makeStyles,
   TextField,
+  Theme,
   Typography,
   useMediaQuery,
   useTheme,
@@ -13,11 +17,21 @@ import { useForm } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
 import * as Yup from '../../../util/vendor/yup';
 import videoHttp from '../../../util/http/video-http';
-import { GetResponse, Video } from '../../../util/models';
+import { GetResponse, Video, VideoFileFieldsMap } from '../../../util/models';
 import SubmitActions from '../../../components/SubmitActions';
 import DefaultForm from '../../../components/DefaultForm';
 import RatingField from './RatingField';
 import UploadField from './UploadField';
+
+const useStyles = makeStyles((theme: Theme) => ({
+  cardUpload: {
+    borderRadius: '4px',
+    backgroundColor: '#f5f5f5',
+    margin: theme.spacing(2),
+  },
+}));
+
+const fileFields = Object.keys(VideoFileFieldsMap);
 
 const validationSchema = Yup.object().shape({
   title: Yup.string()
@@ -43,6 +57,7 @@ const validationSchema = Yup.object().shape({
 });
 
 const Form: React.FC = () => {
+  const classes = useStyles();
   const { id } = useParams();
   const history = useHistory();
   const snackbar = useSnackbar();
@@ -68,7 +83,7 @@ const Form: React.FC = () => {
   });
 
   useEffect(() => {
-    ['rating', 'opened'].forEach((name) => register({ name }));
+    ['rating', 'opened', ...fileFields].forEach((name) => register({ name }));
   }, [register]);
 
   useEffect(() => {
@@ -193,13 +208,40 @@ const Form: React.FC = () => {
             }}
           />
           <br />
-          Uploads
-          <br />
-          <UploadField
-            label="Thumb"
-            accept="video/mp4"
-            setValue={(value) => setValue('thumb_file', value)}
-          />
+          <Card variant="outlined" className={classes.cardUpload}>
+            <CardContent>
+              <Typography color="primary" variant="h6">
+                Imagens
+              </Typography>
+              <UploadField
+                label="Thumb"
+                accept="image/*"
+                setValue={(value) => setValue('thumb_file', value)}
+              />
+              <UploadField
+                label="Banner"
+                accept="image/*"
+                setValue={(value) => setValue('banner_file', value)}
+              />
+            </CardContent>
+          </Card>
+          <Card variant="outlined" className={classes.cardUpload}>
+            <CardContent>
+              <Typography color="primary" variant="h6">
+                Vídeos
+              </Typography>
+              <UploadField
+                label="Trailer"
+                accept="video/mp4"
+                setValue={(value) => setValue('trailer_file', value)}
+              />
+              <UploadField
+                label="Principal"
+                accept="video/mp4"
+                setValue={(value) => setValue('video_file', value)}
+              />
+            </CardContent>
+          </Card>
           <br />
           <FormControlLabel
             disabled={loading}
