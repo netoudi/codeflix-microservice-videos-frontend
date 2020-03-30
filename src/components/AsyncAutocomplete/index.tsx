@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { CircularProgress, TextField, TextFieldProps } from '@material-ui/core';
 import { Autocomplete, AutocompleteProps } from '@material-ui/lab';
-import { useSnackbar } from 'notistack';
 
 interface AsyncAutocompleteProps {
   fetchOptions: (searchText) => Promise<any>;
@@ -10,7 +9,6 @@ interface AsyncAutocompleteProps {
 }
 
 const AsyncAutocomplete: React.FC<AsyncAutocompleteProps> = (props) => {
-  const snackbar = useSnackbar();
   const { freeSolo, onOpen, onClose, onInputChange } = props.AutocompleteProps as any;
   const [open, setOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
@@ -81,8 +79,6 @@ const AsyncAutocomplete: React.FC<AsyncAutocompleteProps> = (props) => {
         if (isSubscribed) {
           setOptions(data);
         }
-      } catch (error) {
-        snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
       } finally {
         setLoading(false);
       }

@@ -27,6 +27,7 @@ import UploadField from './UploadField';
 import AsyncAutocomplete from '../../../components/AsyncAutocomplete';
 import GridSelected from '../../../components/GridSelected';
 import GridSelectedItem from '../../../components/GridSelected/GridSelectedItem';
+import useHttpHandled from '../../../hooks/useHttpHandled';
 
 const useStyles = makeStyles((theme: Theme) => ({
   cardUpload: {
@@ -133,10 +134,11 @@ const Form: React.FC = () => {
     })();
   }
 
+  const autoCompleteHttp = useHttpHandled();
   const fetchOptions = (searchText) =>
-    genreHttp
-      .list({ queryParams: { search: searchText, all: '' } })
-      .then((response) => response.data.data);
+    autoCompleteHttp(genreHttp.list({ queryParams: { search: searchText, all: '' } })).then(
+      (response) => response.data.data,
+    );
 
   return (
     <DefaultForm GridItemProps={{ xs: 12 }} onSubmit={handleSubmit(onSubmit)}>
