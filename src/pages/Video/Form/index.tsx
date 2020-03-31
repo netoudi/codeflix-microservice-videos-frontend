@@ -53,6 +53,12 @@ const validationSchema = Yup.object().shape({
   rating: Yup.string()
     .label('Classificação')
     .required(),
+  genres: Yup.array()
+    .label('Gêneros')
+    .required(),
+  categories: Yup.array()
+    .label('Categorias')
+    .required(),
   duration: Yup.number()
     .label('Duração')
     .min(1)
@@ -207,6 +213,8 @@ const Form: React.FC = () => {
               <GenreField
                 genres={watch('genres')}
                 setGenres={(value) => setValue('genres', value, true)}
+                error={errors.genres}
+                disabled={loading}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -214,6 +222,8 @@ const Form: React.FC = () => {
                 categories={watch('categories')}
                 setCategories={(value) => setValue('categories', value, true)}
                 genres={watch('genres')}
+                error={errors.categories}
+                disabled={loading}
               />
             </Grid>
             <Grid item xs={12}>

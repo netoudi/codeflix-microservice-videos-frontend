@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Typography } from '@material-ui/core';
+import { FormControl, FormControlProps, FormHelperText, Typography } from '@material-ui/core';
 import AsyncAutocomplete from '../../../components/AsyncAutocomplete';
 import GridSelected from '../../../components/GridSelected';
 import GridSelectedItem from '../../../components/GridSelected/GridSelectedItem';
@@ -10,10 +10,13 @@ import useCollectionManager from '../../../hooks/useCollectionManager';
 interface GenreFieldProps {
   genres: any[];
   setGenres: (genres) => void;
+  error: any;
+  disabled?: boolean;
+  FormControlProps?: FormControlProps;
 }
 
 const GenreField: React.FC<GenreFieldProps> = (props) => {
-  const { genres, setGenres } = props;
+  const { genres, setGenres, error, disabled } = props;
   const autoCompleteHttp = useHttpHandled();
   const { addItem, removeItem } = useCollectionManager(genres, setGenres);
 
@@ -28,19 +31,33 @@ const GenreField: React.FC<GenreFieldProps> = (props) => {
       <AsyncAutocomplete
         fetchOptions={fetchOptions}
         AutocompleteProps={{
-          freeSolo: false,
+          clearOnEscape: true,
+          freeSolo: true,
           getOptionLabel: (option) => option.name,
+          getOptionSelected: (option, value) => option.id === value.id,
           onChange: (event, value) => addItem(value),
+          disabled: disabled === true,
         }}
-        TextFieldProps={{ label: 'Gêneros' }}
+        TextFieldProps={{ label: 'Gêneros', error: error !== undefined }}
       />
-      <GridSelected>
-        {genres.map((genre) => (
-          <GridSelectedItem key={String(genre.id)} onClick={() => removeItem(genre)} xs={12}>
-            <Typography noWrap>{genre.name}</Typography>
-          </GridSelectedItem>
-        ))}
-      </GridSelected>
+      <FormControl
+        fullWidth
+        margin="none"
+        error={error !== undefined}
+        disabled={disabled === true}
+        {...props.FormControlProps}
+      >
+        {!!genres.length && (
+          <GridSelected>
+            {genres.map((genre) => (
+              <GridSelectedItem key={String(genre.id)} onClick={() => removeItem(genre)} xs={12}>
+                <Typography noWrap>{genre.name}</Typography>
+              </GridSelectedItem>
+            ))}
+          </GridSelected>
+        )}
+        {error && <FormHelperText>{error.message}</FormHelperText>}
+      </FormControl>
     </>
   );
 };
