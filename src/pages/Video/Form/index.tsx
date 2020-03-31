@@ -5,6 +5,7 @@ import {
   CardContent,
   Checkbox,
   FormControlLabel,
+  FormHelperText,
   Grid,
   makeStyles,
   TextField,
@@ -82,11 +83,14 @@ const Form: React.FC = () => {
     defaultValues: {
       opened: false,
       genres: [],
+      categories: [],
     },
   });
 
   useEffect(() => {
-    ['rating', 'opened', 'genres', ...fileFields].forEach((name) => register({ name }));
+    ['rating', 'opened', 'genres', 'categories', ...fileFields].forEach((name) =>
+      register({ name }),
+    );
   }, [register]);
 
   useEffect(() => {
@@ -206,7 +210,15 @@ const Form: React.FC = () => {
               />
             </Grid>
             <Grid item xs={12} md={6}>
-              <CategoryField />
+              <CategoryField
+                categories={watch('categories')}
+                setCategories={(value) => setValue('categories', value, true)}
+                genres={watch('genres')}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <FormHelperText>Escolha os gêneros do vídeo.</FormHelperText>
+              <FormHelperText>Escolha pelo menos uma categoria de cada gênero.</FormHelperText>
             </Grid>
           </Grid>
         </Grid>

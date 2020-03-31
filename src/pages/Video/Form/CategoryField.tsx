@@ -5,32 +5,48 @@ import GridSelected from '../../../components/GridSelected';
 import GridSelectedItem from '../../../components/GridSelected/GridSelectedItem';
 import useHttpHandled from '../../../hooks/useHttpHandled';
 import categoryHttp from '../../../util/http/category-http';
+import useCollectionManager from '../../../hooks/useCollectionManager';
 
-interface CategoryFieldProps {}
+interface CategoryFieldProps {
+  categories: any[];
+  setCategories: (categories) => void;
+  genres: any[];
+}
 
 const CategoryField: React.FC<CategoryFieldProps> = (props) => {
+  const { categories, setCategories, genres } = props;
   const autoCompleteHttp = useHttpHandled();
-  const fetchOptions = (searchText) =>
-    autoCompleteHttp(categoryHttp.list({ queryParams: { search: searchText, all: '' } })).then(
-      (response) => response.data.data,
-    );
+  const { addItem, removeItem } = useCollectionManager(categories, setCategories);
+
+  function fetchOptions(searchText) {
+    return autoCompleteHttp(
+      categoryHttp.list({
+        queryParams: {
+          search: searchText,
+          genres: genres.map((genre) => genre.id).join(','),
+          all: '',
+        },
+      }),
+    ).then((response) => response.data.data);
+  }
 
   return (
     <>
       <AsyncAutocomplete
         fetchOptions={fetchOptions}
-        AutocompleteProps={{ freeSolo: true, getOptionLabel: (option) => option.name }}
+        AutocompleteProps={{
+          getOptionLabel: (option) => option.name,
+          onChange: (event, value) => addItem(value),
+          disabled: !genres.length,
+        }}
         TextFieldProps={{ label: 'Categorias' }}
       />
       <GridSelected>
-        <GridSelectedItem
-          onClick={() => {
-            console.log('clicou....');
-          }}
-          xs={12}
-        >
-          <Typography noWrap>Categorias Categorias Categorias Categorias </Typography>
-        </GridSelectedItem>
+        {categories.map((category) => (
+          <GridSelectedItem key={String(category.id)} onClick={() => removeItem(category)} xs={12}>
+            <Typography noWrap>{category.name}</Typography>
+          </GridSelectedItem>
+        ))}
       </GridSelected>
     </>
   );
