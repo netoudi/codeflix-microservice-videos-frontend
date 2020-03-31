@@ -6,19 +6,23 @@ import GridSelectedItem from '../../../components/GridSelected/GridSelectedItem'
 import useHttpHandled from '../../../hooks/useHttpHandled';
 import genreHttp from '../../../util/http/genre-http';
 import useCollectionManager from '../../../hooks/useCollectionManager';
+import { getGenresFromCategory } from '../../../util/model-filters';
 
 interface GenreFieldProps {
   genres: any[];
   setGenres: (genres) => void;
+  categories: any[];
+  setCategories: (categories) => void;
   error: any;
   disabled?: boolean;
   FormControlProps?: FormControlProps;
 }
 
 const GenreField: React.FC<GenreFieldProps> = (props) => {
-  const { genres, setGenres, error, disabled } = props;
+  const { genres, setGenres, categories, setCategories, error, disabled } = props;
   const autoCompleteHttp = useHttpHandled();
   const { addItem, removeItem } = useCollectionManager(genres, setGenres);
+  const { removeItem: removeCategory } = useCollectionManager(categories, setCategories);
 
   function fetchOptions(searchText) {
     return autoCompleteHttp(genreHttp.list({ queryParams: { search: searchText, all: '' } })).then(
@@ -50,7 +54,18 @@ const GenreField: React.FC<GenreFieldProps> = (props) => {
         {!!genres.length && (
           <GridSelected>
             {genres.map((genre) => (
-              <GridSelectedItem key={String(genre.id)} onClick={() => removeItem(genre)} xs={12}>
+              <GridSelectedItem
+                key={String(genre.id)}
+                onDelete={() => {
+                  const categoriesWithOneGenre = categories.filter((category) => {
+                    const genresFromCategory = getGenresFromCategory(genres, category);
+                    return genresFromCategory.length === 1 && genres[0].id === genre.id;
+                  });
+                  categoriesWithOneGenre.forEach((item) => removeCategory(item));
+                  removeItem(genre);
+                }}
+                xs={12}
+              >
                 <Typography noWrap>{genre.name}</Typography>
               </GridSelectedItem>
             ))}
