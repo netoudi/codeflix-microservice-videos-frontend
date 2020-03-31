@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { CircularProgress, TextField, TextFieldProps } from '@material-ui/core';
 import { Autocomplete, AutocompleteProps, UseAutocompleteSingleProps } from '@material-ui/lab';
+import { useDebounce } from 'use-debounce';
 
 interface AsyncAutocompleteProps {
   fetchOptions: (searchText) => Promise<any>;
+  debounceTime?: number;
   TextFieldProps?: TextFieldProps;
   AutocompleteProps?: Omit<
     Omit<AutocompleteProps<any> & UseAutocompleteSingleProps<any>, 'renderInput'>,
@@ -15,6 +17,7 @@ const AsyncAutocomplete: React.FC<AsyncAutocompleteProps> = (props) => {
   const { freeSolo = false, onOpen, onClose, onInputChange } = props.AutocompleteProps as any;
   const [open, setOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
+  const [debouncedSearchText] = useDebounce(searchText, props.debounceTime || 300);
   const [loading, setLoading] = useState(false);
   const [options, setOptions] = useState([]);
 
@@ -77,7 +80,7 @@ const AsyncAutocomplete: React.FC<AsyncAutocompleteProps> = (props) => {
       setLoading(true);
 
       try {
-        const data = await props.fetchOptions(searchText);
+        const data = await props.fetchOptions(debouncedSearchText);
 
         if (isSubscribed) {
           setOptions(data);
@@ -90,7 +93,7 @@ const AsyncAutocomplete: React.FC<AsyncAutocompleteProps> = (props) => {
     return () => {
       isSubscribed = false;
     };
-  }, [freeSolo ? searchText : open]); // eslint-disable-line
+  }, [freeSolo ? debouncedSearchText : open]); // eslint-disable-line
 
   return <Autocomplete {...autoCompleteProps} />;
 };
