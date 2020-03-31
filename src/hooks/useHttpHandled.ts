@@ -6,8 +6,7 @@ const useHttpHandled = () => {
 
   return async (request: Promise<any>) => {
     try {
-      const response = await request;
-      return response.data;
+      return await request;
     } catch (e) {
       if (!axios.isCancel(e)) {
         snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });

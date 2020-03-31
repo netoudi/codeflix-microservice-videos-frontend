@@ -81,11 +81,12 @@ const Form: React.FC = () => {
     validationSchema,
     defaultValues: {
       opened: false,
+      genres: [],
     },
   });
 
   useEffect(() => {
-    ['rating', 'opened', ...fileFields].forEach((name) => register({ name }));
+    ['rating', 'opened', 'genres', ...fileFields].forEach((name) => register({ name }));
   }, [register]);
 
   useEffect(() => {
@@ -199,7 +200,10 @@ const Form: React.FC = () => {
           <br />
           <Grid container spacing={1}>
             <Grid item xs={12} md={6}>
-              <GenreField />
+              <GenreField
+                genres={watch('genres')}
+                setGenres={(value) => setValue('genres', value, true)}
+              />
             </Grid>
             <Grid item xs={12} md={6}>
               <CategoryField />

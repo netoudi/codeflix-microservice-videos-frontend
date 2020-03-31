@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { CircularProgress, TextField, TextFieldProps } from '@material-ui/core';
-import { Autocomplete, AutocompleteProps } from '@material-ui/lab';
+import { Autocomplete, AutocompleteProps, UseAutocompleteSingleProps } from '@material-ui/lab';
 
 interface AsyncAutocompleteProps {
   fetchOptions: (searchText) => Promise<any>;
   TextFieldProps?: TextFieldProps;
-  AutocompleteProps?: Omit<Omit<AutocompleteProps<any>, 'renderInput'>, 'options'>;
+  AutocompleteProps?: Omit<
+    Omit<AutocompleteProps<any> & UseAutocompleteSingleProps<any>, 'renderInput'>,
+    'options'
+  >;
 }
 
 const AsyncAutocomplete: React.FC<AsyncAutocompleteProps> = (props) => {
