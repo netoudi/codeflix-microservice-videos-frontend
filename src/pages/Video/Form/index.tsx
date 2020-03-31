@@ -16,18 +16,14 @@ import {
 import { useForm } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
 import * as Yup from '../../../util/vendor/yup';
-import genreHttp from '../../../util/http/genre-http';
-import categoryHttp from '../../../util/http/category-http';
 import videoHttp from '../../../util/http/video-http';
 import { GetResponse, Video, VideoFileFieldsMap } from '../../../util/models';
 import SubmitActions from '../../../components/SubmitActions';
 import DefaultForm from '../../../components/DefaultForm';
 import RatingField from './RatingField';
 import UploadField from './UploadField';
-import AsyncAutocomplete from '../../../components/AsyncAutocomplete';
-import GridSelected from '../../../components/GridSelected';
-import GridSelectedItem from '../../../components/GridSelected/GridSelectedItem';
-import useHttpHandled from '../../../hooks/useHttpHandled';
+import CategoryField from './CategoryField';
+import GenreField from './GenreField';
 
 const useStyles = makeStyles((theme: Theme) => ({
   cardUpload: {
@@ -134,12 +130,6 @@ const Form: React.FC = () => {
     })();
   }
 
-  const autoCompleteHttp = useHttpHandled();
-  const fetchOptions = (searchText) =>
-    autoCompleteHttp(genreHttp.list({ queryParams: { search: searchText, all: '' } })).then(
-      (response) => response.data.data,
-    );
-
   return (
     <DefaultForm GridItemProps={{ xs: 12 }} onSubmit={handleSubmit(onSubmit)}>
       <pre style={{ padding: 20, backgroundColor: '#3333', fontSize: 16 }}>
@@ -207,21 +197,14 @@ const Form: React.FC = () => {
           </Grid>
           Elenco
           <br />
-          <AsyncAutocomplete
-            fetchOptions={fetchOptions}
-            AutocompleteProps={{ freeSolo: false, getOptionLabel: (option) => option.name }}
-            TextFieldProps={{ label: 'Gêneros' }}
-          />
-          <GridSelected>
-            <GridSelectedItem
-              onClick={() => {
-                console.log('clicou....');
-              }}
-              xs={12}
-            >
-              <Typography noWrap>Gênero Gênero Gênero Gênero Gênero Gênero Gênero</Typography>
-            </GridSelectedItem>
-          </GridSelected>
+          <Grid container spacing={1}>
+            <Grid item xs={12} md={6}>
+              <GenreField />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <CategoryField />
+            </Grid>
+          </Grid>
         </Grid>
         <Grid item xs={12} md={6}>
           <RatingField
