@@ -69,6 +69,7 @@ export interface Video extends Timestampable {
   opened: boolean;
   rating: string;
   duration: number;
+  cast_members: CastMember[];
   genres: GenreVideo[];
   categories: Category[];
   thumb_file_url: string;

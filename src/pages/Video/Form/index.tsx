@@ -25,6 +25,7 @@ import RatingField from './RatingField';
 import UploadField from './UploadField';
 import CategoryField from './CategoryField';
 import GenreField from './GenreField';
+import CastMemberField from './CastMemberField';
 
 const useStyles = makeStyles((theme: Theme) => ({
   cardUpload: {
@@ -52,6 +53,9 @@ const validationSchema = Yup.object().shape({
   //   .label('opened'),
   rating: Yup.string()
     .label('Classificação')
+    .required(),
+  cast_members: Yup.array()
+    .label('Elenco')
     .required(),
   genres: Yup.array()
     .label('Gêneros')
@@ -88,13 +92,14 @@ const Form: React.FC = () => {
     validationSchema,
     defaultValues: {
       opened: false,
+      cast_members: [],
       genres: [],
       categories: [],
     },
   });
 
   useEffect(() => {
-    ['rating', 'opened', 'genres', 'categories', ...fileFields].forEach((name) =>
+    ['rating', 'opened', 'cast_members', 'genres', 'categories', ...fileFields].forEach((name) =>
       register({ name }),
     );
   }, [register]);
@@ -206,8 +211,12 @@ const Form: React.FC = () => {
               />
             </Grid>
           </Grid>
-          Elenco
-          <br />
+          <CastMemberField
+            castMembers={watch('cast_members')}
+            setCastMembers={(value) => setValue('cast_members', value, true)}
+            error={errors.cast_members}
+            disabled={loading}
+          />
           <Grid container spacing={1}>
             <Grid item xs={12} md={6}>
               <GenreField
