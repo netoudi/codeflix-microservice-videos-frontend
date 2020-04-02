@@ -59,6 +59,16 @@ const validationSchema = Yup.object().shape({
     .required(),
   genres: Yup.array()
     .label('Gêneros')
+    .test({
+      message: 'Cada gênero escolhido precisa ter pelo menos uma categoria selecionada.',
+      test(value) {
+        return value.every(
+          (v) =>
+            v.categories.filter((cat) => this.parent.categories.map((c) => c.id).includes(cat.id))
+              .length !== 0,
+        );
+      },
+    })
     .required(),
   categories: Yup.array()
     .label('Categorias')
@@ -91,6 +101,7 @@ const Form: React.FC = () => {
   } = useForm<Video>({
     validationSchema,
     defaultValues: {
+      rating: '',
       opened: false,
       cast_members: [],
       genres: [],
