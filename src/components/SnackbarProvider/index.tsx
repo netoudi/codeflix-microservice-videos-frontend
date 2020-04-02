@@ -3,7 +3,7 @@ import { SnackbarProvider as NotistackProvider, SnackbarProviderProps } from 'no
 import { IconButton } from '@material-ui/core';
 import CloseIcon from '@material-ui/icons/Close';
 
-export const SnackbarProvider: React.FC = ({ children, ...rest }: SnackbarProviderProps) => {
+export const SnackbarProvider = ({ children, ...rest }) => {
   let snackbarProviderRef;
   const defaultProps: SnackbarProviderProps = {
     autoHideDuration: 3000,
@@ -12,6 +12,7 @@ export const SnackbarProvider: React.FC = ({ children, ...rest }: SnackbarProvid
       horizontal: 'right',
       vertical: 'top',
     },
+    preventDuplicate: true,
     ref: (el) => {
       snackbarProviderRef = el;
     },
