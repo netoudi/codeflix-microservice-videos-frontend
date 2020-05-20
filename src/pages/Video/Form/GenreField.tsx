@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { MutableRefObject, useImperativeHandle, useRef } from 'react';
+import { MutableRefObject, RefAttributes, useImperativeHandle, useRef } from 'react';
 import { FormControl, FormControlProps, FormHelperText, Typography } from '@material-ui/core';
 import AsyncAutocomplete, {
   AsyncAutocompleteComponent,
@@ -11,7 +11,7 @@ import genreHttp from '../../../util/http/genre-http';
 import useCollectionManager from '../../../hooks/useCollectionManager';
 import { getGenresFromCategory } from '../../../util/model-filters';
 
-interface GenreFieldProps {
+interface GenreFieldProps extends RefAttributes<GenreFieldComponent> {
   genres: any[];
   setGenres: (genres) => void;
   categories: any[];

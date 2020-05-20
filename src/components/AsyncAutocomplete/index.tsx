@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { RefAttributes, useEffect, useImperativeHandle, useState } from 'react';
 import { CircularProgress, TextField, TextFieldProps } from '@material-ui/core';
 import { Autocomplete, AutocompleteProps, UseAutocompleteSingleProps } from '@material-ui/lab';
 import { useDebounce } from 'use-debounce';
 
-interface AsyncAutocompleteProps {
+interface AsyncAutocompleteProps extends RefAttributes<AsyncAutocompleteComponent> {
   fetchOptions: (searchText) => Promise<any>;
   debounceTime?: number;
   TextFieldProps?: TextFieldProps;
@@ -43,6 +43,7 @@ const AsyncAutocomplete: React.RefForwardingComponent<
     open,
     options,
     loading,
+    inputValue: searchText,
     onOpen() {
       setOpen(true);
       onOpen && onOpen();
@@ -102,7 +103,14 @@ const AsyncAutocomplete: React.RefForwardingComponent<
     };
   }, [freeSolo ? debouncedSearchText : open]); // eslint-disable-line
 
-  return <Autocomplete ref={ref} {...autoCompleteProps} />;
+  useImperativeHandle(ref, () => ({
+    clear: () => {
+      setSearchText('');
+      setOptions([]);
+    },
+  }));
+
+  return <Autocomplete {...autoCompleteProps} />;
 };
 
 export default React.forwardRef(AsyncAutocomplete);

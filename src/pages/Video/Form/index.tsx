@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { createRef, MutableRefObject, useEffect, useRef, useState } from 'react';
 import { useHistory, useParams } from 'react-router';
 import {
   Card,
@@ -21,11 +21,13 @@ import videoHttp from '../../../util/http/video-http';
 import { GetResponse, Video, VideoFileFieldsMap } from '../../../util/models';
 import SubmitActions from '../../../components/SubmitActions';
 import DefaultForm from '../../../components/DefaultForm';
+import { InputFileComponent } from '../../../components/InputFile';
 import RatingField from './RatingField';
 import UploadField from './UploadField';
-import CategoryField from './CategoryField';
-import GenreField from './GenreField';
-import CastMemberField from './CastMemberField';
+import CategoryField, { CategoryFieldComponent } from './CategoryField';
+import GenreField, { GenreFieldComponent } from './GenreField';
+import CastMemberField, { CastMemberFieldComponent } from './CastMemberField';
+import { zipObject } from 'lodash';
 
 const useStyles = makeStyles((theme: Theme) => ({
   cardRating: {
@@ -101,8 +103,15 @@ const Form: React.FC = () => {
   const theme = useTheme();
   const isGreaterMd = useMediaQuery(theme.breakpoints.up('md'));
 
-  const castMemberRef = useRef(null);
-  const genreRef = useRef(null);
+  const castMemberRef = useRef() as MutableRefObject<CastMemberFieldComponent>;
+  const genreRef = useRef() as MutableRefObject<GenreFieldComponent>;
+  const categoryRef = useRef() as MutableRefObject<CategoryFieldComponent>;
+  const uploadsRef = useRef(
+    zipObject(
+      fileFields,
+      fileFields.map(() => createRef()),
+    ),
+  ) as MutableRefObject<{ [key: string]: MutableRefObject<InputFileComponent> }>;
 
   const {
     register,
@@ -157,6 +166,7 @@ const Form: React.FC = () => {
           ? await videoHttp.create(formData)
           : await videoHttp.update(video.id, formData);
         snackbar.enqueueSnackbar('Vídeo salvo com sucesso.', { variant: 'success' });
+        id && resetForm();
         setTimeout(() => {
           event
             ? id
@@ -170,6 +180,13 @@ const Form: React.FC = () => {
         setLoading(false);
       }
     })();
+  }
+
+  function resetForm() {
+    Object.keys(uploadsRef.current).forEach((field) => uploadsRef.current[field].current.clear());
+    castMemberRef.current.clear();
+    genreRef.current.clear();
+    categoryRef.current.clear();
   }
 
   return (
@@ -258,6 +275,7 @@ const Form: React.FC = () => {
             </Grid>
             <Grid item xs={12} md={6}>
               <CategoryField
+                ref={categoryRef}
                 categories={watch('categories')}
                 setCategories={(value) => setValue('categories', value, true)}
                 genres={watch('genres')}
@@ -291,11 +309,13 @@ const Form: React.FC = () => {
                 Imagens
               </Typography>
               <UploadField
+                ref={uploadsRef.current['thumb_file']}
                 label="Thumb"
                 accept="image/*"
                 setValue={(value) => setValue('thumb_file', value)}
               />
               <UploadField
+                ref={uploadsRef.current['banner_file']}
                 label="Banner"
                 accept="image/*"
                 setValue={(value) => setValue('banner_file', value)}
@@ -308,11 +328,13 @@ const Form: React.FC = () => {
                 Vídeos
               </Typography>
               <UploadField
+                ref={uploadsRef.current['trailer_file']}
                 label="Trailer"
                 accept="video/mp4"
                 setValue={(value) => setValue('trailer_file', value)}
               />
               <UploadField
+                ref={uploadsRef.current['video_file']}
                 label="Principal"
                 accept="video/mp4"
                 setValue={(value) => setValue('video_file', value)}

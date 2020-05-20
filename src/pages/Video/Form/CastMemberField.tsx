@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { MutableRefObject, useImperativeHandle, useRef } from 'react';
+import { MutableRefObject, RefAttributes, useImperativeHandle, useRef } from 'react';
 import { FormControl, FormControlProps, FormHelperText, Typography } from '@material-ui/core';
 import AsyncAutocomplete, {
   AsyncAutocompleteComponent,
@@ -10,7 +10,7 @@ import useHttpHandled from '../../../hooks/useHttpHandled';
 import castMemberHttp from '../../../util/http/cast-member-http';
 import useCollectionManager from '../../../hooks/useCollectionManager';
 
-interface CastMemberFieldProps {
+interface CastMemberFieldProps extends RefAttributes<CastMemberFieldComponent> {
   castMembers: any[];
   setCastMembers: (castMembers) => void;
   error: any;
