@@ -9,6 +9,7 @@ import {
   FormLabel,
   Radio,
   RadioGroup,
+  Typography,
 } from '@material-ui/core';
 import Rating from '../../../components/Rating';
 
@@ -52,7 +53,7 @@ const ratings: FormControlLabelProps[] = [
 ];
 
 interface RatingFieldProps {
-  value: string;
+  value: string | null;
   setValue: (value) => void;
   error: any;
   disabled?: boolean;
@@ -69,7 +70,11 @@ const RatingField: React.FC<RatingFieldProps> = (props) => {
         disabled={disabled === true}
         {...props.FormControlProps}
       >
-        <FormLabel component="legend">Classificação</FormLabel>
+        <FormLabel component="legend">
+          <Typography color="primary" variant="h6">
+            Classificação
+          </Typography>
+        </FormLabel>
         <Box paddingTop={1}>
           <RadioGroup
             aria-label="rating"

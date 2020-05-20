@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useHistory, useParams } from 'react-router';
 import {
   Card,
@@ -28,10 +28,22 @@ import GenreField from './GenreField';
 import CastMemberField from './CastMemberField';
 
 const useStyles = makeStyles((theme: Theme) => ({
+  cardRating: {
+    borderRadius: '4px',
+    backgroundColor: '#f5f5f5',
+    marginTop: 0,
+  },
   cardUpload: {
     borderRadius: '4px',
     backgroundColor: '#f5f5f5',
-    margin: theme.spacing(2),
+    margin: theme.spacing(2, 0),
+  },
+  cardOpened: {
+    borderRadius: '4px',
+    backgroundColor: '#f5f5f5',
+  },
+  cardContentOpened: {
+    paddingBottom: theme.spacing(2) + 'px !important',
   },
 }));
 
@@ -89,6 +101,9 @@ const Form: React.FC = () => {
   const theme = useTheme();
   const isGreaterMd = useMediaQuery(theme.breakpoints.up('md'));
 
+  const castMemberRef = useRef(null);
+  const genreRef = useRef(null);
+
   const {
     register,
     handleSubmit,
@@ -101,7 +116,7 @@ const Form: React.FC = () => {
   } = useForm<Video>({
     validationSchema,
     defaultValues: {
-      rating: '',
+      rating: null,
       opened: false,
       cast_members: [],
       genres: [],
@@ -223,6 +238,7 @@ const Form: React.FC = () => {
             </Grid>
           </Grid>
           <CastMemberField
+            ref={castMemberRef}
             castMembers={watch('cast_members')}
             setCastMembers={(value) => setValue('cast_members', value, true)}
             error={errors.cast_members}
@@ -231,6 +247,7 @@ const Form: React.FC = () => {
           <Grid container spacing={1}>
             <Grid item xs={12} md={6}>
               <GenreField
+                ref={genreRef}
                 genres={watch('genres')}
                 setGenres={(value) => setValue('genres', value, true)}
                 categories={watch('categories')}
@@ -255,16 +272,19 @@ const Form: React.FC = () => {
           </Grid>
         </Grid>
         <Grid item xs={12} md={6}>
-          <RatingField
-            value={watch('rating')}
-            setValue={(value) => setValue('rating', value, true)}
-            error={errors.rating}
-            disabled={loading}
-            FormControlProps={{
-              margin: isGreaterMd ? 'none' : 'normal',
-            }}
-          />
-          <br />
+          <Card variant="outlined" className={classes.cardRating}>
+            <CardContent>
+              <RatingField
+                value={watch('rating')}
+                setValue={(value) => setValue('rating', value, true)}
+                error={errors.rating}
+                disabled={loading}
+                FormControlProps={{
+                  margin: isGreaterMd ? 'none' : 'normal',
+                }}
+              />
+            </CardContent>
+          </Card>
           <Card variant="outlined" className={classes.cardUpload}>
             <CardContent>
               <Typography color="primary" variant="h6">
@@ -299,24 +319,27 @@ const Form: React.FC = () => {
               />
             </CardContent>
           </Card>
-          <br />
-          <FormControlLabel
-            disabled={loading}
-            control={
-              <Checkbox
-                name="opened"
-                color="primary"
-                onChange={() => setValue('opened', !getValues().opened)}
-                checked={watch('opened')}
+          <Card variant="outlined" className={classes.cardOpened}>
+            <CardContent className={classes.cardContentOpened}>
+              <FormControlLabel
+                disabled={loading}
+                control={
+                  <Checkbox
+                    name="opened"
+                    color="primary"
+                    onChange={() => setValue('opened', !getValues().opened)}
+                    checked={watch('opened')}
+                  />
+                }
+                label={
+                  <Typography color="primary" variant="subtitle2">
+                    Quero que este conteúdo apareça na seção lançamentos.
+                  </Typography>
+                }
+                labelPlacement="end"
               />
-            }
-            label={
-              <Typography color="primary" variant="subtitle2">
-                Quero que este conteúdo aparece na seção lançamentos.
-              </Typography>
-            }
-            labelPlacement="end"
-          />
+            </CardContent>
+          </Card>
         </Grid>
       </Grid>
       <SubmitActions

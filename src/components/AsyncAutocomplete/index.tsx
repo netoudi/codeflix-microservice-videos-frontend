@@ -13,7 +13,14 @@ interface AsyncAutocompleteProps {
   >;
 }
 
-const AsyncAutocomplete: React.FC<AsyncAutocompleteProps> = (props) => {
+export interface AsyncAutocompleteComponent {
+  clear: () => void;
+}
+
+const AsyncAutocomplete: React.RefForwardingComponent<
+  AsyncAutocompleteComponent,
+  AsyncAutocompleteProps
+> = (props, ref) => {
   const { freeSolo = false, onOpen, onClose, onInputChange } = props.AutocompleteProps as any;
   const [open, setOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
@@ -95,7 +102,7 @@ const AsyncAutocomplete: React.FC<AsyncAutocompleteProps> = (props) => {
     };
   }, [freeSolo ? debouncedSearchText : open]); // eslint-disable-line
 
-  return <Autocomplete {...autoCompleteProps} />;
+  return <Autocomplete ref={ref} {...autoCompleteProps} />;
 };
 
-export default AsyncAutocomplete;
+export default React.forwardRef(AsyncAutocomplete);

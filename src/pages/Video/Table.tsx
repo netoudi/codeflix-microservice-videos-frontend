@@ -7,7 +7,7 @@ import videoHttp from '../../util/http/video-http';
 import { formatDate } from '../../util/format';
 import DefaultTable, { MuiDataTableRefComponent, TableColumn } from '../../components/DefaultTable';
 import { BadgeNo, BadgeYes } from '../../components/Badge';
-import { Category, Genre, ListResponse } from '../../util/models';
+import { Category, Genre, ListResponse, Video } from '../../util/models';
 import FilterResetButton from '../../components/DefaultTable/FilterResetButton';
 import useFilter from '../../hooks/useFilter';
 import * as Yup from '../../util/vendor/yup';
@@ -111,7 +111,7 @@ type TableProps = {};
 const Table: React.FC = (props: TableProps) => {
   const snackbar = useSnackbar();
   const subscribed = useRef(true);
-  const [videos, setCategories] = useState<Category[]>([]);
+  const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const tableRef = useRef() as MutableRefObject<MuiDataTableRefComponent>;
   const {
@@ -246,13 +246,13 @@ const Table: React.FC = (props: TableProps) => {
     setLoading(true);
 
     try {
-      const response = await videoHttp.list<ListResponse<Category>>({
+      const response = await videoHttp.list<ListResponse<Video>>({
         queryParams: {
-          search: filterManager.cleanSearchText(filterState.search),
-          page: filterState.pagination.page,
-          per_page: filterState.pagination.per_page,
-          sort: filterState.order.sort,
-          dir: filterState.order.dir,
+          search: filterManager.cleanSearchText(debounceFilterState.search),
+          page: debounceFilterState.pagination.page,
+          per_page: debounceFilterState.pagination.per_page,
+          sort: debounceFilterState.order.sort,
+          dir: debounceFilterState.order.dir,
           ...(debounceFilterState.extraFilter &&
             debounceFilterState.extraFilter.genres && {
               genres: debounceFilterState.extraFilter.genres.join(','),
@@ -268,7 +268,7 @@ const Table: React.FC = (props: TableProps) => {
         },
       });
       if (subscribed.current) {
-        setCategories(response.data.data);
+        setVideos(response.data.data);
         setTotalRecords(response.data.meta.total);
       }
     } catch (error) {
