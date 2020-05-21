@@ -1,4 +1,4 @@
-import React, { createRef, MutableRefObject, useEffect, useRef, useState } from 'react';
+import React, { createRef, MutableRefObject, useContext, useEffect, useRef, useState } from 'react';
 import { useHistory, useParams } from 'react-router';
 import {
   Card,
@@ -29,6 +29,7 @@ import GenreField, { GenreFieldComponent } from './GenreField';
 import CastMemberField, { CastMemberFieldComponent } from './CastMemberField';
 import { zipObject } from 'lodash';
 import useSnackbarFormError from '../../../hooks/useSnackbarFormError';
+import LoadingContext from '../../../components/Loading/LoadingContext';
 
 const useStyles = makeStyles((theme: Theme) => ({
   cardRating: {
@@ -100,7 +101,7 @@ const Form: React.FC = () => {
   const history = useHistory();
   const snackbar = useSnackbar();
   const [video, setVideo] = useState<Video | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const loading = useContext(LoadingContext);
   const theme = useTheme();
   const isGreaterMd = useMediaQuery(theme.breakpoints.up('md'));
 
@@ -146,8 +147,6 @@ const Form: React.FC = () => {
   useEffect(() => {
     if (!id) return;
 
-    setLoading(true);
-
     (async () => {
       try {
         const response = await videoHttp.get<GetResponse<Video>>(id);
@@ -155,15 +154,11 @@ const Form: React.FC = () => {
         reset(response.data.data);
       } catch (error) {
         snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
-      } finally {
-        setLoading(false);
       }
     })();
   }, []); // eslint-disable-line
 
   function onSubmit(formData, event) {
-    setLoading(true);
-
     (async () => {
       try {
         const response = !video
@@ -180,8 +175,6 @@ const Form: React.FC = () => {
         });
       } catch (error) {
         snackbar.enqueueSnackbar('Não foi possível salvar o vídeo.', { variant: 'error' });
-      } finally {
-        setLoading(false);
       }
     })();
   }

@@ -115,7 +115,7 @@ const Table: React.FC = (props: TableProps) => {
   const snackbar = useSnackbar();
   const subscribed = useRef(true);
   const [videos, setVideos] = useState<Video[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const loading = useContext(LoadingContext);
   const tableRef = useRef() as MutableRefObject<MuiDataTableRefComponent>;
   const {
     openDeleteDialog,
@@ -252,8 +252,6 @@ const Table: React.FC = (props: TableProps) => {
   ]);
 
   async function getData() {
-    setLoading(true);
-
     try {
       const response = await videoHttp.list<ListResponse<Video>>({
         queryParams: {
@@ -287,8 +285,6 @@ const Table: React.FC = (props: TableProps) => {
     } catch (error) {
       if (videoHttp.isCancelledRequest(error)) return;
       snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -320,11 +316,8 @@ const Table: React.FC = (props: TableProps) => {
       });
   }
 
-  const testLoading = useContext(LoadingContext);
-
   return (
     <>
-      <strong>LOADING: {testLoading ? 'true' : 'false'}</strong>
       <DeleteDialog open={openDeleteDialog} handleClose={deleteRows} />
       <DefaultTable
         title=""
