@@ -41,5 +41,3 @@ export function addGlobalResponseInterceptor(
 export function removeGlobalResponseInterceptor(ids: number[]) {
   ids.forEach((id, index) => instances[index].interceptors.response.eject(id));
 }
-
-console.log('http');

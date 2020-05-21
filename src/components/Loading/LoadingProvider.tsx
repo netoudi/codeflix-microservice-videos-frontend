@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import LoadingContext from './LoadingContext';
 import {
   addGlobalRequestInterceptor,
@@ -9,15 +9,15 @@ import {
 
 const LoadingProvider: React.FC = (props) => {
   const [loading, setLoading] = useState<boolean>(false);
+  const [countRequest, setCountRequest] = useState(0);
 
   useMemo(() => {
-    console.log('LoadingProvider');
-
     let isSubscribed = true;
 
     const requestIds = addGlobalRequestInterceptor((config) => {
       if (isSubscribed) {
         setLoading(true);
+        incrementCountRequest();
       }
 
       return config;
@@ -26,14 +26,14 @@ const LoadingProvider: React.FC = (props) => {
     const responseIds = addGlobalResponseInterceptor(
       (response) => {
         if (isSubscribed) {
-          setLoading(false);
+          decrementCountRequest();
         }
 
         return response;
       },
       (error) => {
         if (isSubscribed) {
-          setLoading(false);
+          decrementCountRequest();
         }
 
         return Promise.reject(error);
@@ -45,7 +45,21 @@ const LoadingProvider: React.FC = (props) => {
       removeGlobalRequestInterceptor(requestIds);
       removeGlobalResponseInterceptor(responseIds);
     };
-  }, [true]);
+  }, []);
+
+  useEffect(() => {
+    if (!countRequest) {
+      setLoading(false);
+    }
+  }, [countRequest]);
+
+  function incrementCountRequest() {
+    setCountRequest((prevCountRequest) => prevCountRequest + 1);
+  }
+
+  function decrementCountRequest() {
+    setCountRequest((prevCountRequest) => prevCountRequest - 1);
+  }
 
   return <LoadingContext.Provider value={loading}>{props.children}</LoadingContext.Provider>;
 };
