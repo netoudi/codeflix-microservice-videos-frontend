@@ -11,6 +11,8 @@ import { Category, Genre, ListResponse, Video } from '../../util/models';
 import FilterResetButton from '../../components/DefaultTable/FilterResetButton';
 import useFilter from '../../hooks/useFilter';
 import * as Yup from '../../util/vendor/yup';
+import DeleteDialog from '../../components/DeleteDialog';
+import useDeleteCollection from '../../hooks/useDeleteCollection';
 
 const DEBOUNCE_TIME = 300;
 const DEBOUNCE_SEARCH_TIME = 300;
@@ -114,6 +116,12 @@ const Table: React.FC = (props: TableProps) => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const tableRef = useRef() as MutableRefObject<MuiDataTableRefComponent>;
+  const {
+    openDeleteDialog,
+    setOpenDeleteDialog,
+    rowsToDelete,
+    setRowsToDelete,
+  } = useDeleteCollection();
   const {
     columns,
     filterManager,
@@ -270,6 +278,10 @@ const Table: React.FC = (props: TableProps) => {
       if (subscribed.current) {
         setVideos(response.data.data);
         setTotalRecords(response.data.meta.total);
+
+        if (openDeleteDialog) {
+          setOpenDeleteDialog(false);
+        }
       }
     } catch (error) {
       if (videoHttp.isCancelledRequest(error)) return;
@@ -279,48 +291,86 @@ const Table: React.FC = (props: TableProps) => {
     }
   }
 
-  return (
-    <DefaultTable
-      title=""
-      columns={columns}
-      data={videos}
-      loading={loading}
-      debouncedSearchTime={DEBOUNCE_SEARCH_TIME}
-      ref={tableRef}
-      options={{
-        serverSide: true,
-        serverSideFilterList,
-        responsive: 'scrollMaxHeight',
-        searchText: filterState.search as any,
-        page: filterState.pagination.page - 1,
-        rowsPerPage: filterState.pagination.per_page,
-        rowsPerPageOptions: ROWS_PER_PAGE_OPTIONS,
-        count: totalRecords,
-        customToolbar: () => <FilterResetButton handleClick={() => filterManager.resetFilter()} />,
-        onFilterChange: (changedColumn, filterList) => {
-          if (changedColumn === 'opened') {
-            filterManager.changeExtraFilter({
-              [changedColumn]:
-                filterList[indexColumnOpened][0] !== undefined
-                  ? filterList[indexColumnOpened][0]
-                  : null,
-            });
-          }
+  function deleteRows(confirmed: boolean) {
+    if (!confirmed) {
+      setOpenDeleteDialog(false);
+      return;
+    }
 
-          if (changedColumn === 'genres' || changedColumn === 'categories') {
-            const columnIndex = columns.findIndex((column) => column.name === changedColumn);
-            filterManager.changeExtraFilter({
-              [changedColumn]: filterList[columnIndex].length ? filterList[columnIndex] : null,
-            });
-          }
-        },
-        onSearchChange: (value) => filterManager.changeSearch(value),
-        onChangePage: (page) => filterManager.changePage(page),
-        onChangeRowsPerPage: (perPage) => filterManager.changeRowsPerPage(perPage),
-        onColumnSortChange: (changedColumn, direction) =>
-          filterManager.changeColumnSort(changedColumn, direction),
-      }}
-    />
+    const ids = rowsToDelete.data.map((value) => videos[value.index].id).join(',');
+
+    videoHttp
+      .deleteCollection({ ids })
+      .then((response) => {
+        snackbar.enqueueSnackbar('Registros excluídos com sucesso.', { variant: 'success' });
+
+        if (
+          rowsToDelete.data.length === filterState.pagination.per_page &&
+          filterState.pagination.page > 1
+        ) {
+          const page = filterState.pagination.page - 2;
+          filterManager.changePage(page);
+        } else {
+          getData();
+        }
+      })
+      .catch((error) => {
+        snackbar.enqueueSnackbar('Não foi possível excluir os registros.', { variant: 'error' });
+      });
+  }
+
+  return (
+    <>
+      <DeleteDialog open={openDeleteDialog} handleClose={deleteRows} />
+      <DefaultTable
+        title=""
+        columns={columns}
+        data={videos}
+        loading={loading}
+        debouncedSearchTime={DEBOUNCE_SEARCH_TIME}
+        ref={tableRef}
+        options={{
+          serverSide: true,
+          serverSideFilterList,
+          responsive: 'scrollMaxHeight',
+          searchText: filterState.search as any,
+          page: filterState.pagination.page - 1,
+          rowsPerPage: filterState.pagination.per_page,
+          rowsPerPageOptions: ROWS_PER_PAGE_OPTIONS,
+          count: totalRecords,
+          customToolbar: () => (
+            <FilterResetButton handleClick={() => filterManager.resetFilter()} />
+          ),
+          onFilterChange: (changedColumn, filterList) => {
+            if (changedColumn === 'opened') {
+              filterManager.changeExtraFilter({
+                [changedColumn]:
+                  filterList[indexColumnOpened][0] !== undefined
+                    ? filterList[indexColumnOpened][0]
+                    : null,
+              });
+            }
+
+            if (changedColumn === 'genres' || changedColumn === 'categories') {
+              const columnIndex = columns.findIndex((column) => column.name === changedColumn);
+              filterManager.changeExtraFilter({
+                [changedColumn]: filterList[columnIndex].length ? filterList[columnIndex] : null,
+              });
+            }
+          },
+          onSearchChange: (value) => filterManager.changeSearch(value),
+          onChangePage: (page) => filterManager.changePage(page),
+          onChangeRowsPerPage: (perPage) => filterManager.changeRowsPerPage(perPage),
+          onColumnSortChange: (changedColumn, direction) =>
+            filterManager.changeColumnSort(changedColumn, direction),
+          onRowsDelete: (rowsDeleted: any[]) => {
+            console.info(JSON.stringify(rowsDeleted, null, 2));
+            setRowsToDelete(rowsDeleted as any);
+            return false;
+          },
+        }}
+      />
+    </>
   );
 };
 
