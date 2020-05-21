@@ -1,16 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { useMemo, useState } from 'react';
 import LoadingContext from './LoadingContext';
+import {
+  addGlobalRequestInterceptor,
+  addGlobalResponseInterceptor,
+  removeGlobalRequestInterceptor,
+  removeGlobalResponseInterceptor,
+} from '../../util/http';
 
 const LoadingProvider: React.FC = (props) => {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  useEffect(() => {
+  useMemo(() => {
     console.log('LoadingProvider');
 
     let isSubscribed = true;
 
-    axios.interceptors.request.use((config) => {
+    const requestIds = addGlobalRequestInterceptor((config) => {
       if (isSubscribed) {
         setLoading(true);
       }
@@ -18,7 +23,7 @@ const LoadingProvider: React.FC = (props) => {
       return config;
     });
 
-    axios.interceptors.response.use(
+    const responseIds = addGlobalResponseInterceptor(
       (response) => {
         if (isSubscribed) {
           setLoading(false);
@@ -37,8 +42,10 @@ const LoadingProvider: React.FC = (props) => {
 
     return () => {
       isSubscribed = false;
+      removeGlobalRequestInterceptor(requestIds);
+      removeGlobalResponseInterceptor(responseIds);
     };
-  }, []);
+  }, [true]);
 
   return <LoadingContext.Provider value={loading}>{props.children}</LoadingContext.Provider>;
 };

@@ -1,4 +1,4 @@
-import React, { MutableRefObject, useEffect, useRef, useState } from 'react';
+import React, { MutableRefObject, useContext, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import genreHttp from '../../util/http/genre-http';
@@ -13,6 +13,7 @@ import useFilter from '../../hooks/useFilter';
 import * as Yup from '../../util/vendor/yup';
 import DeleteDialog from '../../components/DeleteDialog';
 import useDeleteCollection from '../../hooks/useDeleteCollection';
+import LoadingContext from '../../components/Loading/LoadingContext';
 
 const DEBOUNCE_TIME = 300;
 const DEBOUNCE_SEARCH_TIME = 300;
@@ -319,8 +320,11 @@ const Table: React.FC = (props: TableProps) => {
       });
   }
 
+  const testLoading = useContext(LoadingContext);
+
   return (
     <>
+      <strong>LOADING: {testLoading ? 'true' : 'false'}</strong>
       <DeleteDialog open={openDeleteDialog} handleClose={deleteRows} />
       <DefaultTable
         title=""
