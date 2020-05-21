@@ -28,6 +28,7 @@ import CategoryField, { CategoryFieldComponent } from './CategoryField';
 import GenreField, { GenreFieldComponent } from './GenreField';
 import CastMemberField, { CastMemberFieldComponent } from './CastMemberField';
 import { zipObject } from 'lodash';
+import useSnackbarFormError from '../../../hooks/useSnackbarFormError';
 
 const useStyles = makeStyles((theme: Theme) => ({
   cardRating: {
@@ -122,6 +123,7 @@ const Form: React.FC = () => {
     reset,
     watch,
     triggerValidation,
+    formState,
   } = useForm<Video>({
     validationSchema,
     defaultValues: {
@@ -132,6 +134,8 @@ const Form: React.FC = () => {
       categories: [],
     },
   });
+
+  useSnackbarFormError(formState.submitCount, errors);
 
   useEffect(() => {
     ['rating', 'opened', 'cast_members', 'genres', 'categories', ...fileFields].forEach((name) =>
