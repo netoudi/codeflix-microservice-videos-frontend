@@ -7,10 +7,10 @@ import Breadcrumbs from './components/Breadcrumbs';
 import { SnackbarProvider } from './components/SnackbarProvider';
 import Spinner from './components/Spinner';
 import theme from './theme';
-import LoadingContext from './components/Loading/LoadingContext';
+import LoadingProvider from './components/Loading/LoadingProvider';
 
 const App: React.FC = () => (
-  <LoadingContext.Provider value={true}>
+  <LoadingProvider>
     <MuiThemeProvider theme={theme}>
       <SnackbarProvider>
         <CssBaseline />
@@ -24,7 +24,7 @@ const App: React.FC = () => (
         </BrowserRouter>
       </SnackbarProvider>
     </MuiThemeProvider>
-  </LoadingContext.Provider>
+  </LoadingProvider>
 );
 
 export default App;
