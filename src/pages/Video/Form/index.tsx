@@ -30,6 +30,7 @@ import CastMemberField, { CastMemberFieldComponent } from './CastMemberField';
 import { zipObject } from 'lodash';
 import useSnackbarFormError from '../../../hooks/useSnackbarFormError';
 import LoadingContext from '../../../components/Loading/LoadingContext';
+import SnackbarUpload from '../../../components/SnackbarUpload';
 
 const useStyles = makeStyles((theme: Theme) => ({
   cardRating: {
@@ -145,6 +146,16 @@ const Form: React.FC = () => {
   }, [register]);
 
   useEffect(() => {
+    snackbar.enqueueSnackbar('', {
+      key: 'snackbar-upload',
+      persist: true,
+      anchorOrigin: {
+        vertical: 'bottom',
+        horizontal: 'right',
+      },
+      content: (key: any) => <SnackbarUpload id={key} />,
+    });
+
     if (!id) return;
 
     (async () => {
