@@ -1,4 +1,5 @@
 import { createActions, createReducer } from 'reduxsauce';
+import update from 'immutability-helper';
 import * as Typings from './types';
 
 export const { Types, Creators } = createActions<Typings.ActionTypes, Typings.ActionCreators>({
@@ -14,7 +15,36 @@ const reducer = createReducer<Typings.State, Typings.Actions>(INITIAL_STATE, {
 });
 
 function addUpload(state = INITIAL_STATE, action: Typings.AddUploadAction): Typings.State {
-  return state;
+  if (!action.payload.files.length) {
+    return state;
+  }
+
+  const index = findIndexUpload(state, action.payload.video.id);
+
+  if (index !== -1 && state.uploads[index].progress < 1) {
+    return state;
+  }
+
+  const uploads = index === -1 ? state.uploads : update(state.uploads, { $splice: [[index, 1]] });
+
+  return {
+    uploads: [
+      ...uploads,
+      {
+        video: action.payload.video,
+        progress: 0,
+        files: action.payload.files.map((file) => ({
+          fileField: file.fileField,
+          filename: file.file.name,
+          progress: 0,
+        })),
+      },
+    ],
+  };
+}
+
+function findIndexUpload(state: Typings.State, id: string) {
+  return state.uploads.findIndex((upload) => upload.video.id === id);
 }
 
 export default reducer;

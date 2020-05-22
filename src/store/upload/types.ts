@@ -27,7 +27,7 @@ export interface AddUploadAction extends AnyAction {
 }
 
 export interface State {
-  uploads: [];
+  uploads: Upload[];
 }
 
 export type ActionTypes = {
