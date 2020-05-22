@@ -16,6 +16,8 @@ import {
 } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
+import { useDispatch, useSelector } from 'react-redux';
+import { zipObject } from 'lodash';
 import * as Yup from '../../../util/vendor/yup';
 import videoHttp from '../../../util/http/video-http';
 import { GetResponse, Video, VideoFileFieldsMap } from '../../../util/models';
@@ -27,10 +29,11 @@ import UploadField from './UploadField';
 import CategoryField, { CategoryFieldComponent } from './CategoryField';
 import GenreField, { GenreFieldComponent } from './GenreField';
 import CastMemberField, { CastMemberFieldComponent } from './CastMemberField';
-import { zipObject } from 'lodash';
 import useSnackbarFormError from '../../../hooks/useSnackbarFormError';
 import LoadingContext from '../../../components/Loading/LoadingContext';
 import SnackbarUpload from '../../../components/SnackbarUpload';
+import { State as UploadState, Upload } from '../../../store/upload/types';
+import { Creators as UploadCreators } from '../../../store/upload';
 
 const useStyles = makeStyles((theme: Theme) => ({
   cardRating: {
@@ -48,7 +51,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     backgroundColor: '#f5f5f5',
   },
   cardContentOpened: {
-    paddingBottom: theme.spacing(2) + 'px !important',
+    paddingBottom: `${theme.spacing(2)}px !important`,
   },
 }));
 
@@ -136,6 +139,24 @@ const Form: React.FC = () => {
       categories: [],
     },
   });
+
+  const uploads = useSelector<UploadState, Upload[]>((state) => state.uploads);
+
+  console.info(JSON.stringify(uploads, null, 2));
+
+  const dispatch = useDispatch();
+
+  setTimeout(() => {
+    const upload: any = {
+      video: {
+        id: '1',
+        title: 'Lorem ipsum dolor sit amet.',
+      },
+      files: [{ file: new File([''], 'video.mp4') }],
+    };
+
+    dispatch(UploadCreators.addUpload(upload));
+  }, 1000);
 
   useSnackbarFormError(formState.submitCount, errors);
 
@@ -317,13 +338,13 @@ const Form: React.FC = () => {
                 Imagens
               </Typography>
               <UploadField
-                ref={uploadsRef.current['thumb_file']}
+                ref={uploadsRef.current.thumb_file}
                 label="Thumb"
                 accept="image/*"
                 setValue={(value) => setValue('thumb_file', value)}
               />
               <UploadField
-                ref={uploadsRef.current['banner_file']}
+                ref={uploadsRef.current.banner_file}
                 label="Banner"
                 accept="image/*"
                 setValue={(value) => setValue('banner_file', value)}
@@ -336,13 +357,13 @@ const Form: React.FC = () => {
                 Vídeos
               </Typography>
               <UploadField
-                ref={uploadsRef.current['trailer_file']}
+                ref={uploadsRef.current.trailer_file}
                 label="Trailer"
                 accept="video/mp4"
                 setValue={(value) => setValue('trailer_file', value)}
               />
               <UploadField
-                ref={uploadsRef.current['video_file']}
+                ref={uploadsRef.current.video_file}
                 label="Principal"
                 accept="video/mp4"
                 setValue={(value) => setValue('video_file', value)}

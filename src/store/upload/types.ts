@@ -15,10 +15,6 @@ export interface Upload {
   files: FileUpload[];
 }
 
-export interface UploadCollectionState {
-  uploads: Upload[];
-}
-
 export interface AddUploadAction extends AnyAction {
   payload: {
     video: Video;
