@@ -11,7 +11,7 @@ import {
 import { makeStyles } from '@material-ui/core/styles';
 import MovieIcon from '@material-ui/icons/Movie';
 import UploadProgress from '../UploadProgress';
-import UploadActions from '../UploadActions';
+import UploadActions from './UploadActions';
 
 const useStyles = makeStyles((theme: Theme) => ({
   movieIcon: {
@@ -59,4 +59,4 @@ const UploadItem: React.FC<UploadItemProps> = (props) => {
   );
 };
 
-export default React.forwardRef(UploadItem);
+export default UploadItem;
