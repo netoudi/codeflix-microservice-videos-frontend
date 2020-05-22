@@ -13,6 +13,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import { useSnackbar } from 'notistack';
 import { makeStyles } from '@material-ui/core/styles';
 import classnames from 'classnames';
+import UploadItem from './UploadItem';
 
 const useStyles = makeStyles((theme: Theme) => ({
   card: {
@@ -41,6 +42,10 @@ const useStyles = makeStyles((theme: Theme) => ({
     transition: theme.transitions.create('transform', {
       duration: theme.transitions.duration.shortest,
     }),
+  },
+  list: {
+    paddingTop: 0,
+    paddingBottom: 0,
   },
 }));
 
@@ -74,7 +79,12 @@ const SnackbarUpload: React.RefForwardingComponent<any, SnackbarUploadProps> = (
         </div>
       </CardActions>
       <Collapse in={expanded}>
-        <List>Items</List>
+        <List className={classes.list}>
+          <UploadItem />
+          <UploadItem />
+          <UploadItem />
+          <UploadItem />
+        </List>
       </Collapse>
     </Card>
   );
