@@ -146,17 +146,36 @@ const Form: React.FC = () => {
 
   const dispatch = useDispatch();
 
-  setTimeout(() => {
+  useEffect(() => {
     const upload: any = {
       video: {
         id: '1',
         title: 'Lorem ipsum dolor sit amet.',
       },
-      files: [{ file: new File([''], 'video.mp4') }],
+      files: [
+        { file: new File([''], 'video.mp4'), fileField: 'trailer_file' },
+        { file: new File([''], 'video.mp4'), fileField: 'video_file' },
+      ],
     };
 
     dispatch(UploadCreators.addUpload(upload));
-  }, 1000);
+
+    const progress1 = {
+      fileField: 'trailer_file',
+      progress: 10,
+      video: { id: '1' },
+    } as any;
+
+    dispatch(UploadCreators.updateProgress(progress1));
+
+    const progress2 = {
+      fileField: 'video_file',
+      progress: 20,
+      video: { id: '1' },
+    } as any;
+
+    dispatch(UploadCreators.updateProgress(progress2));
+  }, [dispatch]);
 
   useSnackbarFormError(formState.submitCount, errors);
 

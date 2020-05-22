@@ -28,6 +28,14 @@ export interface RemoveUploadAction extends AnyAction {
   };
 }
 
+export interface UpdateProgressAction extends AnyAction {
+  payload: {
+    video: Video;
+    fileField: string;
+    progress: number;
+  };
+}
+
 export interface State {
   uploads: Upload[];
 }
@@ -35,11 +43,13 @@ export interface State {
 export type ActionTypes = {
   ADD_UPLOAD: string;
   REMOVE_UPLOAD: string;
+  UPDATE_PROGRESS: string;
 };
 
 export type ActionCreators = {
   addUpload(payload: AddUploadAction['payload']): AddUploadAction;
   removeUpload(payload: RemoveUploadAction['payload']): RemoveUploadAction;
+  updateProgress(payload: UpdateProgressAction['payload']): UpdateProgressAction;
 };
 
-export type Actions = AddUploadAction | RemoveUploadAction;
+export type Actions = AddUploadAction | RemoveUploadAction | UpdateProgressAction;
