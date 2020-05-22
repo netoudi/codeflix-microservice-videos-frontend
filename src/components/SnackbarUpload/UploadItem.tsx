@@ -11,6 +11,7 @@ import {
 import { makeStyles } from '@material-ui/core/styles';
 import MovieIcon from '@material-ui/icons/Movie';
 import UploadProgress from '../UploadProgress';
+import UploadActions from '../UploadActions';
 
 const useStyles = makeStyles((theme: Theme) => ({
   movieIcon: {
@@ -50,6 +51,7 @@ const UploadItem: React.FC<UploadItemProps> = (props) => {
             }
           />
           <UploadProgress size={30} />
+          <UploadActions />
         </ListItem>
       </Tooltip>
       <Divider component="li" />
