@@ -1,8 +1,48 @@
-import React from 'react';
-import { Card, CardActions, Collapse, IconButton, List, Typography } from '@material-ui/core';
+import React, { useState } from 'react';
+import {
+  Card,
+  CardActions,
+  Collapse,
+  IconButton,
+  List,
+  Theme,
+  Typography,
+} from '@material-ui/core';
 import CloseIcon from '@material-ui/icons/Close';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import { useSnackbar } from 'notistack';
+import { makeStyles } from '@material-ui/core/styles';
+import classnames from 'classnames';
+
+const useStyles = makeStyles((theme: Theme) => ({
+  card: {
+    width: 450,
+  },
+  cardActions: {
+    padding: '8px 8px 8px 16px',
+    backgroundColor: theme.palette.primary.main,
+  },
+  title: {
+    fontWeight: 'bold',
+    color: theme.palette.primary.contrastText,
+  },
+  icons: {
+    marginLeft: 'auto !important',
+    color: theme.palette.primary.contrastText,
+  },
+  expand: {
+    transform: 'rotate(180deg)',
+    transition: theme.transitions.create('transform', {
+      duration: theme.transitions.duration.shortest,
+    }),
+  },
+  expandOpen: {
+    transform: 'rotate(0deg)',
+    transition: theme.transitions.create('transform', {
+      duration: theme.transitions.duration.shortest,
+    }),
+  },
+}));
 
 interface SnackbarUploadProps {
   id: string | number;
@@ -10,14 +50,22 @@ interface SnackbarUploadProps {
 
 const SnackbarUpload: React.RefForwardingComponent<any, SnackbarUploadProps> = (props, ref) => {
   const { id } = props;
+  const classes = useStyles();
   const { closeSnackbar } = useSnackbar();
+  const [expanded, setExpanded] = useState(true);
 
   return (
-    <Card ref={ref}>
-      <CardActions>
-        <Typography>Fazendo upload de 10 vídeo(s)</Typography>
-        <div>
-          <IconButton color="inherit">
+    <Card ref={ref} className={classes.card}>
+      <CardActions classes={{ root: classes.cardActions }}>
+        <Typography variant="subtitle2" className={classes.title}>
+          Fazendo upload de 10 vídeo(s)
+        </Typography>
+        <div className={classes.icons}>
+          <IconButton
+            color="inherit"
+            onClick={() => setExpanded(!expanded)}
+            className={classnames(classes.expand, { [classes.expandOpen]: !expanded })}
+          >
             <ExpandMoreIcon />
           </IconButton>
           <IconButton color="inherit" onClick={() => closeSnackbar(id)}>
@@ -25,7 +73,7 @@ const SnackbarUpload: React.RefForwardingComponent<any, SnackbarUploadProps> = (
           </IconButton>
         </div>
       </CardActions>
-      <Collapse>
+      <Collapse in={expanded}>
         <List>Items</List>
       </Collapse>
     </Card>
