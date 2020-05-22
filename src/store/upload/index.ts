@@ -4,6 +4,7 @@ import * as Typings from './types';
 
 export const { Types, Creators } = createActions<Typings.ActionTypes, Typings.ActionCreators>({
   addUpload: ['payload'],
+  removeUpload: ['payload'],
 });
 
 export const INITIAL_STATE: Typings.State = {
@@ -12,6 +13,7 @@ export const INITIAL_STATE: Typings.State = {
 
 const reducer = createReducer<Typings.State, Typings.Actions>(INITIAL_STATE, {
   [Types.ADD_UPLOAD]: addUpload as any,
+  [Types.REMOVE_UPLOAD]: removeUpload as any,
 });
 
 function addUpload(state = INITIAL_STATE, action: Typings.AddUploadAction): Typings.State {
@@ -40,6 +42,18 @@ function addUpload(state = INITIAL_STATE, action: Typings.AddUploadAction): Typi
         })),
       },
     ],
+  };
+}
+
+function removeUpload(state = INITIAL_STATE, action: Typings.RemoveUploadAction): Typings.State {
+  const uploads = state.uploads.filter((upload) => upload.video.id !== action.payload.id);
+
+  if (uploads.length === state.uploads.length) {
+    return state;
+  }
+
+  return {
+    uploads,
   };
 }
 

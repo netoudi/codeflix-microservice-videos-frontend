@@ -22,16 +22,24 @@ export interface AddUploadAction extends AnyAction {
   };
 }
 
+export interface RemoveUploadAction extends AnyAction {
+  payload: {
+    id: string;
+  };
+}
+
 export interface State {
   uploads: Upload[];
 }
 
 export type ActionTypes = {
   ADD_UPLOAD: string;
+  REMOVE_UPLOAD: string;
 };
 
 export type ActionCreators = {
   addUpload(payload: AddUploadAction['payload']): AddUploadAction;
+  removeUpload(payload: RemoveUploadAction['payload']): RemoveUploadAction;
 };
 
-export type Actions = AddUploadAction;
+export type Actions = AddUploadAction | RemoveUploadAction;
