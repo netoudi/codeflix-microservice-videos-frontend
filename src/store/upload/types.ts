@@ -36,6 +36,14 @@ export interface UpdateProgressAction extends AnyAction {
   };
 }
 
+export interface SetUploadErrorAction extends AnyAction {
+  payload: {
+    video: Video;
+    fileField: string;
+    error: AxiosError;
+  };
+}
+
 export interface State {
   uploads: Upload[];
 }
@@ -44,12 +52,18 @@ export type ActionTypes = {
   ADD_UPLOAD: string;
   REMOVE_UPLOAD: string;
   UPDATE_PROGRESS: string;
+  SET_UPLOAD_ERROR: string;
 };
 
 export type ActionCreators = {
   addUpload(payload: AddUploadAction['payload']): AddUploadAction;
   removeUpload(payload: RemoveUploadAction['payload']): RemoveUploadAction;
   updateProgress(payload: UpdateProgressAction['payload']): UpdateProgressAction;
+  setUploadError(payload: SetUploadErrorAction['payload']): SetUploadErrorAction;
 };
 
-export type Actions = AddUploadAction | RemoveUploadAction | UpdateProgressAction;
+export type Actions =
+  | AddUploadAction
+  | RemoveUploadAction
+  | UpdateProgressAction
+  | SetUploadErrorAction;
