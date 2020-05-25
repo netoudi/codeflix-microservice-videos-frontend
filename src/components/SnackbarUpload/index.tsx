@@ -13,7 +13,10 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import { useSnackbar } from 'notistack';
 import { makeStyles } from '@material-ui/core/styles';
 import classnames from 'classnames';
+import { useSelector } from 'react-redux';
 import UploadItem from './UploadItem';
+import { countInProgress } from '../../store/upload/getters';
+import { Upload, UploadModule } from '../../store/upload/types';
 
 const useStyles = makeStyles((theme: Theme) => ({
   card: {
@@ -59,11 +62,15 @@ const SnackbarUpload: React.RefForwardingComponent<any, SnackbarUploadProps> = (
   const { closeSnackbar } = useSnackbar();
   const [expanded, setExpanded] = useState(true);
 
+  const uploads = useSelector<UploadModule, Upload[]>((state) => state.upload.uploads);
+
+  const totalInProgress = countInProgress(uploads);
+
   return (
     <Card ref={ref} className={classes.card}>
       <CardActions classes={{ root: classes.cardActions }}>
         <Typography variant="subtitle2" className={classes.title}>
-          Fazendo upload de 10 vídeo(s)
+          Fazendo upload de {totalInProgress} vídeo(s)
         </Typography>
         <div className={classes.icons}>
           <IconButton
