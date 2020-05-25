@@ -9,7 +9,23 @@ class VideoHttp extends HttpResource {
   }
 
   update<T = any>(id, data, options?: { config?: AxiosRequestConfig }): Promise<AxiosResponse<T>> {
-    return this.http.post<T>(`${this.resource}/${id}`, this.sanitizeData(data, 'PUT'));
+    return this.http.post<T>(
+      `${this.resource}/${id}`,
+      this.sanitizeData(data, 'PUT'),
+      options?.config,
+    );
+  }
+
+  partialUpdate<T = any>(
+    id,
+    data,
+    options?: { config?: AxiosRequestConfig },
+  ): Promise<AxiosResponse<T>> {
+    return this.http.post<T>(
+      `${this.resource}/${id}`,
+      this.sanitizeData(data, 'PATCH'),
+      options?.config,
+    );
   }
 
   private sanitizeData(data, methodSpoofing: string) {

@@ -23,7 +23,7 @@ function* uploadFile({ video, fileInfo }: { video: Video; fileInfo: FileInfo }) 
 }
 
 function sendUpload({ id, fileInfo }: { id: string; fileInfo: FileInfo }) {
-  videoHttp.update(
+  return videoHttp.partialUpdate(
     id,
     {
       [fileInfo.fileField]: fileInfo.file,
