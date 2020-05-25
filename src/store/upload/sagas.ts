@@ -39,7 +39,15 @@ function* uploadFile({ video, fileInfo }: { video: Video; fileInfo: FileInfo }) 
         }),
       );
     } catch (e) {
-      console.log(e);
+      yield put(
+        Creators.setUploadError({
+          video,
+          fileField: fileInfo.fileField,
+          error: e,
+        }),
+      );
+
+      throw e;
     }
   }
 }
