@@ -1,4 +1,4 @@
-import { AxiosResponse } from 'axios';
+import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { VideoFileFieldsMap } from '../models';
 import HttpResource from './http-resource';
 import { httpVideo } from './index';
@@ -8,7 +8,7 @@ class VideoHttp extends HttpResource {
     return this.http.post<T>(this.resource, this.sanitizeData(data, 'POST'));
   }
 
-  update<T = any>(id, data): Promise<AxiosResponse<T>> {
+  update<T = any>(id, data, options?: { config?: AxiosRequestConfig }): Promise<AxiosResponse<T>> {
     return this.http.post<T>(`${this.resource}/${id}`, this.sanitizeData(data, 'PUT'));
   }
 

@@ -149,7 +149,7 @@ const Form: React.FC = () => {
   useEffect(() => {
     const upload: any = {
       video: {
-        id: '1',
+        id: 'b9622f80-9dad-4594-9049-e0c3c2ca00c0',
         title: 'Lorem ipsum dolor sit amet.',
       },
       files: [
@@ -163,7 +163,7 @@ const Form: React.FC = () => {
     const progress1 = {
       fileField: 'trailer_file',
       progress: 10,
-      video: { id: '1' },
+      video: { id: 'b9622f80-9dad-4594-9049-e0c3c2ca00c0' },
     } as any;
 
     dispatch(UploadCreators.updateProgress(progress1));
@@ -171,7 +171,7 @@ const Form: React.FC = () => {
     const progress2 = {
       fileField: 'video_file',
       progress: 20,
-      video: { id: '1' },
+      video: { id: 'b9622f80-9dad-4594-9049-e0c3c2ca00c0' },
     } as any;
 
     dispatch(UploadCreators.updateProgress(progress2));
