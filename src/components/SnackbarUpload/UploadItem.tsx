@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Divider,
   ListItem,
@@ -40,6 +40,7 @@ const UploadItem: React.FC<UploadItemProps> = (props) => {
   const { upload } = props;
   const classes = useStyles();
   const error = hasError(upload);
+  const [itemHover, setItemHover] = useState(false);
 
   return (
     <>
@@ -49,7 +50,12 @@ const UploadItem: React.FC<UploadItemProps> = (props) => {
         title={error ? 'Não foi possível fazer o upload, clique para mais detalhes.' : ''}
         placement="left"
       >
-        <ListItem className={classes.listItem} button>
+        <ListItem
+          className={classes.listItem}
+          button
+          onMouseOver={() => setItemHover(true)}
+          onMouseLeave={() => setItemHover(false)}
+        >
           <ListItemIcon className={classes.movieIcon}>
             <MovieIcon />
           </ListItemIcon>
@@ -62,7 +68,7 @@ const UploadItem: React.FC<UploadItemProps> = (props) => {
             }
           />
           <UploadProgress size={30} uploadOrFile={upload} />
-          <UploadActions upload={upload} />
+          <UploadActions upload={upload} hover={itemHover} />
         </ListItem>
       </Tooltip>
       <Divider component="li" />
