@@ -32,7 +32,7 @@ import CastMemberField, { CastMemberFieldComponent } from './CastMemberField';
 import useSnackbarFormError from '../../../hooks/useSnackbarFormError';
 import LoadingContext from '../../../components/Loading/LoadingContext';
 import SnackbarUpload from '../../../components/SnackbarUpload';
-import { State as UploadState, Upload } from '../../../store/upload/types';
+import { Upload, UploadModule } from '../../../store/upload/types';
 import { Creators as UploadCreators } from '../../../store/upload';
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -140,7 +140,7 @@ const Form: React.FC = () => {
     },
   });
 
-  const uploads = useSelector<UploadState, Upload[]>((state) => state.uploads);
+  const uploads = useSelector<UploadModule, Upload[]>((state) => state.upload.uploads);
 
   console.info(JSON.stringify(uploads, null, 2));
 

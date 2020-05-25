@@ -9,18 +9,18 @@ export const { Types, Creators } = createActions<Typings.ActionTypes, Typings.Ac
   setUploadError: ['payload'],
 });
 
-export const INITIAL_STATE: Typings.State = {
+export const INITIAL_STATE: Typings.UploadState = {
   uploads: [],
 };
 
-const reducer = createReducer<Typings.State, Typings.Actions>(INITIAL_STATE, {
+const reducer = createReducer<Typings.UploadState, Typings.Actions>(INITIAL_STATE, {
   [Types.ADD_UPLOAD]: addUpload as any,
   [Types.REMOVE_UPLOAD]: removeUpload as any,
   [Types.UPDATE_PROGRESS]: updateProgress as any,
   [Types.SET_UPLOAD_ERROR]: setUploadError as any,
 });
 
-function addUpload(state = INITIAL_STATE, action: Typings.AddUploadAction): Typings.State {
+function addUpload(state = INITIAL_STATE, action: Typings.AddUploadAction): Typings.UploadState {
   if (!action.payload.files.length) {
     return state;
   }
@@ -49,7 +49,10 @@ function addUpload(state = INITIAL_STATE, action: Typings.AddUploadAction): Typi
   };
 }
 
-function removeUpload(state = INITIAL_STATE, action: Typings.RemoveUploadAction): Typings.State {
+function removeUpload(
+  state = INITIAL_STATE,
+  action: Typings.RemoveUploadAction,
+): Typings.UploadState {
   const uploads = state.uploads.filter((upload) => upload.video.id !== action.payload.id);
 
   if (uploads.length === state.uploads.length) {
@@ -64,7 +67,7 @@ function removeUpload(state = INITIAL_STATE, action: Typings.RemoveUploadAction)
 function updateProgress(
   state = INITIAL_STATE,
   action: Typings.UpdateProgressAction,
-): Typings.State {
+): Typings.UploadState {
   const videoId = action.payload.video.id;
   const { fileField } = action.payload;
   const { indexUpload, indexFile } = findIndexUploadAndFile(state, videoId, fileField);
@@ -98,7 +101,7 @@ function updateProgress(
 function setUploadError(
   state = INITIAL_STATE,
   action: Typings.SetUploadErrorAction,
-): Typings.State {
+): Typings.UploadState {
   const videoId = action.payload.video.id;
   const { fileField } = action.payload;
   const { indexUpload, indexFile } = findIndexUploadAndFile(state, videoId, fileField);
@@ -124,7 +127,7 @@ function setUploadError(
 }
 
 function findIndexUploadAndFile(
-  state: Typings.State,
+  state: Typings.UploadState,
   videoId,
   fileField,
 ): { indexUpload?; indexFile? } {
@@ -140,7 +143,7 @@ function findIndexUploadAndFile(
   return indexFile === -1 ? {} : { indexUpload, indexFile };
 }
 
-function findIndexUpload(state: Typings.State, id: string) {
+function findIndexUpload(state: Typings.UploadState, id: string) {
   return state.uploads.findIndex((upload) => upload.video.id === id);
 }
 

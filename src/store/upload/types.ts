@@ -20,6 +20,14 @@ export interface FileInfo {
   fileField: string;
 }
 
+export interface UploadModule {
+  upload: UploadState;
+}
+
+export interface UploadState {
+  uploads: Upload[];
+}
+
 export interface AddUploadAction extends AnyAction {
   payload: {
     video: Video;
@@ -47,10 +55,6 @@ export interface SetUploadErrorAction extends AnyAction {
     fileField: string;
     error: AxiosError;
   };
-}
-
-export interface State {
-  uploads: Upload[];
 }
 
 export type ActionTypes = {
