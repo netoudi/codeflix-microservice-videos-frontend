@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { omit } from 'lodash';
 import LoadingContext from './LoadingContext';
 import {
   addGlobalRequestInterceptor,
@@ -15,12 +16,15 @@ const LoadingProvider: React.FC = (props) => {
     let isSubscribed = true;
 
     const requestIds = addGlobalRequestInterceptor((config) => {
-      if (isSubscribed) {
+      if (isSubscribed && !Object.prototype.hasOwnProperty.call(config, 'ignoreLoading')) {
         setLoading(true);
         incrementCountRequest();
       }
 
-      return config;
+      return {
+        ...config,
+        headers: omit(config.headers, 'ignoreLoading'),
+      };
     });
 
     const responseIds = addGlobalResponseInterceptor(
