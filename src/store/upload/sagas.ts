@@ -1,6 +1,6 @@
-import { actionChannel, call, take } from 'redux-saga/effects';
-import { eventChannel } from 'redux-saga';
-import { Types } from './index';
+import { actionChannel, call, put, take } from 'redux-saga/effects';
+import { END, eventChannel } from 'redux-saga';
+import { Creators, Types } from './index';
 import { AddUploadAction, FileInfo } from './types';
 import { Video } from '../../util/models';
 import videoHttp from '../../util/http/video-http';
@@ -12,7 +12,8 @@ export function* uploadWatcherSaga() {
     const { payload }: AddUploadAction = yield take(newFilesChannel);
 
     for (const fileInfo of payload.files) {
-      yield call(uploadFile, { video: payload.video, fileInfo });
+      const response = yield call(uploadFile, { video: payload.video, fileInfo });
+      console.log(response);
     }
 
     console.log(payload);
@@ -24,8 +25,19 @@ function* uploadFile({ video, fileInfo }: { video: Video; fileInfo: FileInfo }) 
 
   while (true) {
     try {
-      const event = yield take(channel);
-      console.log(event);
+      const { progress, response } = yield take(channel);
+
+      if (response) {
+        return response;
+      }
+
+      yield put(
+        Creators.updateProgress({
+          video,
+          fileField: fileInfo.fileField,
+          progress,
+        }),
+      );
     } catch (e) {
       console.log(e);
     }
@@ -42,14 +54,18 @@ function sendUpload({ id, fileInfo }: { id: string; fileInfo: FileInfo }) {
         },
         {
           config: {
-            onUploadProgress(progressEvent) {
-              emitter(progressEvent);
+            onUploadProgress(progressEvent: ProgressEvent) {
+              if (progressEvent.lengthComputable) {
+                const progress = progressEvent.loaded / progressEvent.total;
+                emitter({ progress });
+              }
             },
           },
         },
       )
-      .then((response) => emitter(response))
-      .catch((error) => emitter(error));
+      .then((response) => emitter({ response }))
+      .catch((error) => emitter(error))
+      .finally(() => emitter(END));
 
     const unsubscribe = () => {};
 
