@@ -15,10 +15,15 @@ export interface Upload {
   files: FileUpload[];
 }
 
+export interface FileInfo {
+  file: File;
+  fileField: string;
+}
+
 export interface AddUploadAction extends AnyAction {
   payload: {
     video: Video;
-    files: Array<{ file: File; fileField: string }>;
+    files: Array<FileInfo>;
   };
 }
 
