@@ -4,6 +4,9 @@ import { makeStyles } from '@material-ui/core/styles';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import ErrorIcon from '@material-ui/icons/Error';
 import DeleteIcon from '@material-ui/icons/Delete';
+import { useDispatch } from 'react-redux';
+import { Upload } from '../../store/upload/types';
+import { Creators } from '../../store/upload';
 
 const useStyles = makeStyles((theme: Theme) => ({
   successIcon: {
@@ -17,24 +20,34 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }));
 
-interface UploadActionsProps {}
+interface UploadActionsProps {
+  upload: Upload;
+}
 
 const UploadActions: React.FC<UploadActionsProps> = (props) => {
+  const { upload } = props;
   const classes = useStyles();
+  const dispatch = useDispatch();
 
   return (
     <Fade in timeout={{ enter: 1000 }}>
       <ListItemSecondaryAction>
         <span>
-          <IconButton className={classes.successIcon} edge="end">
-            <CheckCircleIcon />
-          </IconButton>
+          {upload.progress === 1 && (
+            <IconButton className={classes.successIcon} edge="end">
+              <CheckCircleIcon />
+            </IconButton>
+          )}
           <IconButton className={classes.errorIcon} edge="end">
             <ErrorIcon />
           </IconButton>
         </span>
         <span>
-          <IconButton className={classes.deleteIcon} edge="end">
+          <IconButton
+            className={classes.deleteIcon}
+            edge="end"
+            onClick={() => dispatch(Creators.removeUpload({ id: upload.video.id }))}
+          >
             <DeleteIcon />
           </IconButton>
         </span>

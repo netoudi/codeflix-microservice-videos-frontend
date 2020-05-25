@@ -12,6 +12,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import MovieIcon from '@material-ui/icons/Movie';
 import UploadProgress from '../UploadProgress';
 import UploadActions from './UploadActions';
+import { Upload } from '../../store/upload/types';
 
 const useStyles = makeStyles((theme: Theme) => ({
   movieIcon: {
@@ -30,9 +31,12 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }));
 
-interface UploadItemProps {}
+interface UploadItemProps {
+  upload: Upload;
+}
 
 const UploadItem: React.FC<UploadItemProps> = (props) => {
+  const { upload } = props;
   const classes = useStyles();
 
   return (
@@ -46,12 +50,12 @@ const UploadItem: React.FC<UploadItemProps> = (props) => {
             className={classes.listItemText}
             primary={
               <Typography noWrap variant="subtitle2" color="inherit">
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+                {upload.video.title}
               </Typography>
             }
           />
-          <UploadProgress size={30} />
-          <UploadActions />
+          <UploadProgress size={30} uploadOrFile={upload} />
+          <UploadActions upload={upload} />
         </ListItem>
       </Tooltip>
       <Divider component="li" />
