@@ -29,7 +29,7 @@ const validationSchema = Yup.object().shape({
 const Form: React.FC = () => {
   const { id } = useParams();
   const history = useHistory();
-  const snackbar = useSnackbar();
+  const { enqueueSnackbar } = useSnackbar();
   const [genre, setGenre] = useState<Genre | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -81,7 +81,7 @@ const Form: React.FC = () => {
           }
         }
       } catch (error) {
-        snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
+        enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
       } finally {
         setLoading(false);
       }
@@ -90,7 +90,7 @@ const Form: React.FC = () => {
     return () => {
       isSubscribed = false;
     };
-  }, []); // eslint-disable-line
+  }, [enqueueSnackbar, id, reset]);
 
   const handleChange = (event) => {
     setValue('categories_id', event.target.value);
@@ -103,7 +103,7 @@ const Form: React.FC = () => {
 
     http
       .then((response) => {
-        snackbar.enqueueSnackbar('Gênero salvo com sucesso.', { variant: 'success' });
+        enqueueSnackbar('Gênero salvo com sucesso.', { variant: 'success' });
         setTimeout(() => {
           event
             ? id
@@ -113,7 +113,7 @@ const Form: React.FC = () => {
         });
       })
       .catch((error) => {
-        snackbar.enqueueSnackbar('Não foi possível salvar o gênero.', { variant: 'error' });
+        enqueueSnackbar('Não foi possível salvar o gênero.', { variant: 'error' });
         console.log(error);
       })
       .finally(() => setLoading(false));

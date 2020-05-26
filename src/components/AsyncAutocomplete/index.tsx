@@ -21,6 +21,7 @@ const AsyncAutocomplete: React.RefForwardingComponent<
   AsyncAutocompleteComponent,
   AsyncAutocompleteProps
 > = (props, ref) => {
+  const { fetchOptions } = props;
   const { freeSolo = false, onOpen, onClose, onInputChange } = props.AutocompleteProps as any;
   const [open, setOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
@@ -77,7 +78,7 @@ const AsyncAutocomplete: React.RefForwardingComponent<
     if (!open && !freeSolo) {
       setOptions([]);
     }
-  }, [open]); // eslint-disable-line
+  }, [freeSolo, open]);
 
   useEffect(() => {
     if (!open || (searchText === '' && freeSolo)) return;
@@ -88,7 +89,7 @@ const AsyncAutocomplete: React.RefForwardingComponent<
       setLoading(true);
 
       try {
-        const data = await props.fetchOptions(debouncedSearchText);
+        const data = await fetchOptions(debouncedSearchText);
 
         if (isSubscribed) {
           setOptions(data);
@@ -101,7 +102,7 @@ const AsyncAutocomplete: React.RefForwardingComponent<
     return () => {
       isSubscribed = false;
     };
-  }, [freeSolo ? debouncedSearchText : open]); // eslint-disable-line
+  }, [debouncedSearchText, fetchOptions, freeSolo, open, searchText]);
 
   useImperativeHandle(ref, () => ({
     clear: () => {

@@ -112,7 +112,7 @@ const columnsDefinition: TableColumn[] = [
 type TableProps = {};
 
 const Table: React.FC = (props: TableProps) => {
-  const snackbar = useSnackbar();
+  const { enqueueSnackbar } = useSnackbar();
   const subscribed = useRef(true);
   const [videos, setVideos] = useState<Video[]>([]);
   const loading = useContext(LoadingContext);
@@ -137,8 +137,8 @@ const Table: React.FC = (props: TableProps) => {
     debounceTime: DEBOUNCE_TIME,
     tableRef,
     extraFilter: {
-      createValidationSchema: () => {
-        return Yup.object().shape({
+      createValidationSchema: () =>
+        Yup.object().shape({
           genres: Yup.mixed()
             .nullable()
             .transform((value) => (!value || value === '' ? undefined : value.split(',')))
@@ -151,10 +151,9 @@ const Table: React.FC = (props: TableProps) => {
             .nullable()
             .transform((value) => (!value || !['Sim', 'Não'].includes(value) ? undefined : value))
             .default(null),
-        });
-      },
-      formatSearchParams: (debouncedState) => {
-        return debouncedState.extraFilter
+        }),
+      formatSearchParams: (debouncedState) =>
+        debouncedState.extraFilter
           ? {
               ...(debouncedState.extraFilter.genres && {
                 genres: debouncedState.extraFilter.genres.join(','),
@@ -166,8 +165,7 @@ const Table: React.FC = (props: TableProps) => {
                 opened: debouncedState.extraFilter.opened,
               }),
             }
-          : undefined;
-      },
+          : undefined,
       getStateFromUrl: (queryParams) => ({
         genres: queryParams.get('genres'),
         categories: queryParams.get('categories'),
@@ -226,14 +224,14 @@ const Table: React.FC = (props: TableProps) => {
           );
         }
       } catch (error) {
-        snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
+        enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
       }
     })();
 
     return () => {
       isSubscribed = false;
     };
-  }, []); // eslint-disable-line
+  }, [columnCategories.options, columnGenres.options, enqueueSnackbar]);
 
   useEffect(() => {
     subscribed.current = true;
@@ -284,7 +282,7 @@ const Table: React.FC = (props: TableProps) => {
       }
     } catch (error) {
       if (videoHttp.isCancelledRequest(error)) return;
-      snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
+      enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
     }
   }
 
@@ -299,7 +297,7 @@ const Table: React.FC = (props: TableProps) => {
     videoHttp
       .deleteCollection({ ids })
       .then((response) => {
-        snackbar.enqueueSnackbar('Registros excluídos com sucesso.', { variant: 'success' });
+        enqueueSnackbar('Registros excluídos com sucesso.', { variant: 'success' });
 
         if (
           rowsToDelete.data.length === filterState.pagination.per_page &&
@@ -312,7 +310,7 @@ const Table: React.FC = (props: TableProps) => {
         }
       })
       .catch((error) => {
-        snackbar.enqueueSnackbar('Não foi possível excluir os registros.', { variant: 'error' });
+        enqueueSnackbar('Não foi possível excluir os registros.', { variant: 'error' });
       });
   }
 

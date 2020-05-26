@@ -61,7 +61,7 @@ const Form: React.FC = () => {
         reset(response.data.data);
       })
       .finally(() => setLoading(false));
-  }, []); // eslint-disable-line
+  }, [id, reset]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target as HTMLInputElement;

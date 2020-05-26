@@ -19,7 +19,7 @@ const validationSchema = Yup.object().shape({
 const Form: React.FC = () => {
   const { id } = useParams();
   const history = useHistory();
-  const snackbar = useSnackbar();
+  const { enqueueSnackbar } = useSnackbar();
   const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -54,12 +54,12 @@ const Form: React.FC = () => {
         setCategory(response.data.data);
         reset(response.data.data);
       } catch (error) {
-        snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
+        enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
       } finally {
         setLoading(false);
       }
     })();
-  }, []); // eslint-disable-line
+  }, [id, reset, enqueueSnackbar]);
 
   function onSubmit(formData, event) {
     setLoading(true);
@@ -69,7 +69,7 @@ const Form: React.FC = () => {
         const response = !category
           ? await categoryHttp.create(formData)
           : await categoryHttp.update(category.id, formData);
-        snackbar.enqueueSnackbar('Categoria salva com sucesso.', { variant: 'success' });
+        enqueueSnackbar('Categoria salva com sucesso.', { variant: 'success' });
         setTimeout(() => {
           event
             ? id
@@ -78,7 +78,7 @@ const Form: React.FC = () => {
             : history.push('/categories');
         });
       } catch (error) {
-        snackbar.enqueueSnackbar('Não foi possível salvar a categoria.', { variant: 'error' });
+        enqueueSnackbar('Não foi possível salvar a categoria.', { variant: 'error' });
       } finally {
         setLoading(false);
       }

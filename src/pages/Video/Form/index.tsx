@@ -103,7 +103,7 @@ const Form: React.FC = () => {
   const classes = useStyles();
   const { id } = useParams();
   const history = useHistory();
-  const snackbar = useSnackbar();
+  const { enqueueSnackbar } = useSnackbar();
   const [video, setVideo] = useState<Video | null>(null);
   const loading = useContext(LoadingContext);
   const theme = useTheme();
@@ -186,7 +186,7 @@ const Form: React.FC = () => {
   }, [register]);
 
   useEffect(() => {
-    snackbar.enqueueSnackbar('', {
+    enqueueSnackbar('', {
       key: 'snackbar-upload',
       persist: true,
       anchorOrigin: {
@@ -204,10 +204,10 @@ const Form: React.FC = () => {
         setVideo(response.data.data);
         reset(response.data.data);
       } catch (error) {
-        snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
+        enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
       }
     })();
-  }, []); // eslint-disable-line
+  }, [enqueueSnackbar, id, reset]);
 
   function onSubmit(formData, event) {
     (async () => {
@@ -215,7 +215,7 @@ const Form: React.FC = () => {
         const response = !video
           ? await videoHttp.create(formData)
           : await videoHttp.update(video.id, formData);
-        snackbar.enqueueSnackbar('Vídeo salvo com sucesso.', { variant: 'success' });
+        enqueueSnackbar('Vídeo salvo com sucesso.', { variant: 'success' });
         id && resetForm();
         setTimeout(() => {
           event
@@ -225,7 +225,7 @@ const Form: React.FC = () => {
             : history.push('/videos');
         });
       } catch (error) {
-        snackbar.enqueueSnackbar('Não foi possível salvar o vídeo.', { variant: 'error' });
+        enqueueSnackbar('Não foi possível salvar o vídeo.', { variant: 'error' });
       }
     })();
   }

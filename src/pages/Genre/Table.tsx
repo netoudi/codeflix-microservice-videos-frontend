@@ -95,7 +95,7 @@ const columnsDefinition: TableColumn[] = [
 type TableProps = {};
 
 const Table: React.FC = (props: TableProps) => {
-  const snackbar = useSnackbar();
+  const { enqueueSnackbar } = useSnackbar();
   const subscribed = useRef(true);
   const [genres, setGenres] = useState<Genre[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -114,8 +114,8 @@ const Table: React.FC = (props: TableProps) => {
     debounceTime: DEBOUNCE_TIME,
     tableRef,
     extraFilter: {
-      createValidationSchema: () => {
-        return Yup.object().shape({
+      createValidationSchema: () =>
+        Yup.object().shape({
           categories: Yup.mixed()
             .nullable()
             .transform((value) => (!value || value === '' ? undefined : value.split(',')))
@@ -124,10 +124,9 @@ const Table: React.FC = (props: TableProps) => {
             .nullable()
             .transform((value) => (!value || !['Sim', 'Não'].includes(value) ? undefined : value))
             .default(null),
-        });
-      },
-      formatSearchParams: (debouncedState) => {
-        return debouncedState.extraFilter
+        }),
+      formatSearchParams: (debouncedState) =>
+        debouncedState.extraFilter
           ? {
               ...(debouncedState.extraFilter.categories && {
                 categories: debouncedState.extraFilter.categories.join(','),
@@ -136,8 +135,7 @@ const Table: React.FC = (props: TableProps) => {
                 is_active: debouncedState.extraFilter.is_active,
               }),
             }
-          : undefined;
-      },
+          : undefined,
       getStateFromUrl: (queryParams) => ({
         categories: queryParams.get('categories'),
         is_active: queryParams.get('is_active'),
@@ -179,14 +177,14 @@ const Table: React.FC = (props: TableProps) => {
           );
         }
       } catch (error) {
-        snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
+        enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
       }
     })();
 
     return () => {
       isSubscribed = false;
     };
-  }, []); // eslint-disable-line
+  }, [columnCategories.options, enqueueSnackbar]);
 
   useEffect(() => {
     subscribed.current = true;
@@ -232,7 +230,7 @@ const Table: React.FC = (props: TableProps) => {
       }
     } catch (error) {
       if (categoryHttp.isCancelledRequest(error)) return;
-      snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
+      enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
     } finally {
       setLoading(false);
     }
