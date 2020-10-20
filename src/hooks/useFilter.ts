@@ -10,7 +10,6 @@ import React, {
 import { MUIDataTableColumn } from 'mui-datatables';
 import { useDebounce } from 'use-debounce';
 import { useHistory, useLocation } from 'react-router';
-import { History } from 'history';
 import { isEqual } from 'lodash';
 import reducer, { Creators } from '../store/filter';
 import { Actions as FilterActions, State as FilterState } from '../store/filter/types';
@@ -21,11 +20,9 @@ interface FilterManagerOptions {
   schema: Yup.ObjectSchema;
   columns: MUIDataTableColumn[];
   rowsPerPage: number;
-  rowsPerPageOptions: number[];
-  debounceTime: number;
-  history: History;
   tableRef: React.MutableRefObject<MuiDataTableRefComponent>;
-  extraFilter?: ExtraFilter;
+  dispatch: Dispatch<FilterActions>;
+  state: FilterState;
 }
 
 interface ExtraFilter {
@@ -34,7 +31,14 @@ interface ExtraFilter {
   createValidationSchema: () => any;
 }
 
-type UseFilterOptions = Omit<FilterManagerOptions, 'history' | 'schema'>;
+interface UseFilterOptions {
+  columns: MUIDataTableColumn[];
+  rowsPerPage: number;
+  rowsPerPageOptions: number[];
+  debounceTime: number;
+  tableRef: React.MutableRefObject<MuiDataTableRefComponent>;
+  extraFilter?: ExtraFilter;
+}
 
 export default function useFilter(options: UseFilterOptions) {
   const history = useHistory();
@@ -61,9 +65,11 @@ export default function useFilter(options: UseFilterOptions) {
             .transform((value) => (isNaN(value) || parseInt(value, 10) < 1 ? undefined : value))
             .default(0),
           per_page: Yup.number()
-            .transform((value) =>
-              isNaN(value) || !rowsPerPageOptions.includes(parseInt(value, 10)) ? undefined : value,
-            )
+            .transform((value) => {
+              return isNaN(value) || !rowsPerPageOptions.includes(parseInt(value, 10))
+                ? undefined
+                : value;
+            })
             .default(rowsPerPage),
         }),
         order: Yup.object().shape({
@@ -78,9 +84,9 @@ export default function useFilter(options: UseFilterOptions) {
             .default(null),
           dir: Yup.string()
             .nullable()
-            .transform((value) =>
-              !value || !['asc', 'desc'].includes(value.toLowerCase()) ? undefined : value,
-            )
+            .transform((value) => {
+              return !value || !['asc', 'desc'].includes(value.toLowerCase()) ? undefined : value;
+            })
             .default(null),
         }),
         ...(extraFilter && { extraFilter: extraFilter.createValidationSchema() }),
@@ -135,12 +141,12 @@ export default function useFilter(options: UseFilterOptions) {
     [cleanSearchText, extraFilter],
   );
 
-  const filterManager = new FilterManager({ ...options, history, schema });
   const initialState = stateFromUrl as FilterState;
   const [filterState, dispatch] = useReducer<Reducer<FilterState, FilterActions>>(
     reducer,
     initialState,
   );
+  const filterManager = new FilterManager({ ...options, state: filterState, dispatch, schema });
   const [debounceFilterState] = useDebounce(filterState, options.debounceTime);
   const [totalRecords, setTotalRecords] = useState<number>(0);
 
@@ -174,10 +180,6 @@ export default function useFilter(options: UseFilterOptions) {
     locationState,
   ]);
 
-  filterManager.state = filterState;
-  filterManager.debouncedState = debounceFilterState;
-  filterManager.dispatch = dispatch;
-
   filterManager.applyOderInColumns();
 
   return {
@@ -193,48 +195,27 @@ export default function useFilter(options: UseFilterOptions) {
 }
 
 class FilterManager {
-  state: FilterState = null as any;
+  state: FilterState;
 
-  debouncedState: FilterState = null as any;
-
-  dispatch: Dispatch<FilterActions> = null as any;
+  dispatch: Dispatch<FilterActions>;
 
   columns: MUIDataTableColumn[];
 
   rowsPerPage: number;
 
-  rowsPerPageOptions: number[];
-
-  debounceTime: number;
-
-  history: History;
-
   tableRef: React.MutableRefObject<MuiDataTableRefComponent>;
-
-  extraFilter?: ExtraFilter;
 
   schema: Yup.ObjectSchema;
 
   constructor(options: FilterManagerOptions) {
-    const {
-      schema,
-      columns,
-      rowsPerPage,
-      rowsPerPageOptions,
-      debounceTime,
-      history,
-      tableRef,
-      extraFilter,
-    } = options;
+    const { schema, columns, rowsPerPage, tableRef, dispatch, state } = options;
 
     this.schema = schema;
     this.columns = columns;
     this.rowsPerPage = rowsPerPage;
-    this.rowsPerPageOptions = rowsPerPageOptions;
-    this.debounceTime = debounceTime;
-    this.history = history;
     this.tableRef = tableRef;
-    this.extraFilter = extraFilter;
+    this.dispatch = dispatch;
+    this.state = state;
   }
 
   changeSearch(value) {

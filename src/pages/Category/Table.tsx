@@ -1,4 +1,4 @@
-import React, { MutableRefObject, useEffect, useRef, useState } from 'react';
+import React, { MutableRefObject, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import categoryHttp from '../../util/http/category-http';
@@ -84,21 +84,9 @@ const Table: React.FC = (props: TableProps) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const tableRef = useRef() as MutableRefObject<MuiDataTableRefComponent>;
-  const {
-    columns,
-    cleanSearchText,
-    filterManager,
-    filterState,
-    debounceFilterState,
-    totalRecords,
-    setTotalRecords,
-  } = useFilter({
-    columns: columnsDefinition,
-    rowsPerPage: ROWS_PER_PAGE,
-    rowsPerPageOptions: ROWS_PER_PAGE_OPTIONS,
-    debounceTime: DEBOUNCE_TIME,
-    tableRef,
-    extraFilter: {
+
+  const extraFilter = useMemo(
+    () => ({
       createValidationSchema: () => {
         return Yup.object().shape({
           is_active: Yup.string()
@@ -117,7 +105,25 @@ const Table: React.FC = (props: TableProps) => {
           : undefined;
       },
       getStateFromUrl: (queryParams) => ({ is_active: queryParams.get('is_active') }),
-    },
+    }),
+    [],
+  );
+
+  const {
+    columns,
+    cleanSearchText,
+    filterManager,
+    filterState,
+    debounceFilterState,
+    totalRecords,
+    setTotalRecords,
+  } = useFilter({
+    columns: columnsDefinition,
+    rowsPerPage: ROWS_PER_PAGE,
+    rowsPerPageOptions: ROWS_PER_PAGE_OPTIONS,
+    debounceTime: DEBOUNCE_TIME,
+    tableRef,
+    extraFilter,
   });
 
   useEffect(() => {

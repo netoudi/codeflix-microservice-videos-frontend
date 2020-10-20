@@ -1,4 +1,4 @@
-import React, { MutableRefObject, useEffect, useRef, useState } from 'react';
+import React, { MutableRefObject, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import { invert } from 'lodash';
@@ -88,21 +88,9 @@ const Table: React.FC = (props: TableProps) => {
   const [castMembers, setCastMembers] = useState<CastMember[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const tableRef = useRef() as MutableRefObject<MuiDataTableRefComponent>;
-  const {
-    columns,
-    cleanSearchText,
-    filterManager,
-    filterState,
-    debounceFilterState,
-    totalRecords,
-    setTotalRecords,
-  } = useFilter({
-    columns: columnsDefinition,
-    rowsPerPage: ROWS_PER_PAGE,
-    rowsPerPageOptions: ROWS_PER_PAGE_OPTIONS,
-    debounceTime: DEBOUNCE_TIME,
-    tableRef,
-    extraFilter: {
+
+  const extraFilter = useMemo(
+    () => ({
       createValidationSchema: () => {
         return Yup.object().shape({
           type: Yup.number()
@@ -121,7 +109,25 @@ const Table: React.FC = (props: TableProps) => {
         };
       },
       getStateFromUrl: (queryParams) => ({ type: queryParams.get('type') }),
-    },
+    }),
+    [],
+  );
+
+  const {
+    columns,
+    cleanSearchText,
+    filterManager,
+    filterState,
+    debounceFilterState,
+    totalRecords,
+    setTotalRecords,
+  } = useFilter({
+    columns: columnsDefinition,
+    rowsPerPage: ROWS_PER_PAGE,
+    rowsPerPageOptions: ROWS_PER_PAGE_OPTIONS,
+    debounceTime: DEBOUNCE_TIME,
+    tableRef,
+    extraFilter,
   });
 
   const indexColumnType = columns.findIndex((column) => column.name === 'type');

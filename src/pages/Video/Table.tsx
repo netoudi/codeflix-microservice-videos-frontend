@@ -1,4 +1,4 @@
-import React, { MutableRefObject, useContext, useEffect, useRef, useState } from 'react';
+import React, { MutableRefObject, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import genreHttp from '../../util/http/genre-http';
@@ -123,6 +123,49 @@ const Table: React.FC = (props: TableProps) => {
     rowsToDelete,
     setRowsToDelete,
   } = useDeleteCollection();
+
+  const extraFilter = useMemo(
+    () => ({
+      createValidationSchema: () => {
+        return Yup.object().shape({
+          genres: Yup.mixed()
+            .nullable()
+            .transform((value) => (!value || value === '' ? undefined : value.split(',')))
+            .default(null),
+          categories: Yup.mixed()
+            .nullable()
+            .transform((value) => (!value || value === '' ? undefined : value.split(',')))
+            .default(null),
+          opened: Yup.string()
+            .nullable()
+            .transform((value) => (!value || !['Sim', 'Não'].includes(value) ? undefined : value))
+            .default(null),
+        });
+      },
+      formatSearchParams: (debouncedState) => {
+        return debouncedState.extraFilter
+          ? {
+              ...(debouncedState.extraFilter.genres && {
+                genres: debouncedState.extraFilter.genres.join(','),
+              }),
+              ...(debouncedState.extraFilter.categories && {
+                categories: debouncedState.extraFilter.categories.join(','),
+              }),
+              ...(debouncedState.extraFilter.opened !== null && {
+                opened: debouncedState.extraFilter.opened,
+              }),
+            }
+          : undefined;
+      },
+      getStateFromUrl: (queryParams) => ({
+        genres: queryParams.get('genres'),
+        categories: queryParams.get('categories'),
+        opened: queryParams.get('opened'),
+      }),
+    }),
+    [],
+  );
+
   const {
     columns,
     cleanSearchText,
@@ -137,42 +180,7 @@ const Table: React.FC = (props: TableProps) => {
     rowsPerPageOptions: ROWS_PER_PAGE_OPTIONS,
     debounceTime: DEBOUNCE_TIME,
     tableRef,
-    extraFilter: {
-      createValidationSchema: () =>
-        Yup.object().shape({
-          genres: Yup.mixed()
-            .nullable()
-            .transform((value) => (!value || value === '' ? undefined : value.split(',')))
-            .default(null),
-          categories: Yup.mixed()
-            .nullable()
-            .transform((value) => (!value || value === '' ? undefined : value.split(',')))
-            .default(null),
-          opened: Yup.string()
-            .nullable()
-            .transform((value) => (!value || !['Sim', 'Não'].includes(value) ? undefined : value))
-            .default(null),
-        }),
-      formatSearchParams: (debouncedState) =>
-        debouncedState.extraFilter
-          ? {
-              ...(debouncedState.extraFilter.genres && {
-                genres: debouncedState.extraFilter.genres.join(','),
-              }),
-              ...(debouncedState.extraFilter.categories && {
-                categories: debouncedState.extraFilter.categories.join(','),
-              }),
-              ...(debouncedState.extraFilter.opened !== null && {
-                opened: debouncedState.extraFilter.opened,
-              }),
-            }
-          : undefined,
-      getStateFromUrl: (queryParams) => ({
-        genres: queryParams.get('genres'),
-        categories: queryParams.get('categories'),
-        opened: queryParams.get('opened'),
-      }),
-    },
+    extraFilter,
   });
 
   // column genres

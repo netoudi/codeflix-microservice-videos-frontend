@@ -1,4 +1,4 @@
-import React, { MutableRefObject, useEffect, useRef, useState } from 'react';
+import React, { MutableRefObject, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import genreHttp from '../../util/http/genre-http';
@@ -100,6 +100,41 @@ const Table: React.FC = (props: TableProps) => {
   const [genres, setGenres] = useState<Genre[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const tableRef = useRef() as MutableRefObject<MuiDataTableRefComponent>;
+
+  const extraFilter = useMemo(
+    () => ({
+      createValidationSchema: () => {
+        return Yup.object().shape({
+          categories: Yup.mixed()
+            .nullable()
+            .transform((value) => (!value || value === '' ? undefined : value.split(',')))
+            .default(null),
+          is_active: Yup.string()
+            .nullable()
+            .transform((value) => (!value || !['Sim', 'Não'].includes(value) ? undefined : value))
+            .default(null),
+        });
+      },
+      formatSearchParams: (debouncedState) => {
+        return debouncedState.extraFilter
+          ? {
+              ...(debouncedState.extraFilter.categories && {
+                categories: debouncedState.extraFilter.categories.join(','),
+              }),
+              ...(debouncedState.extraFilter.is_active !== null && {
+                is_active: debouncedState.extraFilter.is_active,
+              }),
+            }
+          : undefined;
+      },
+      getStateFromUrl: (queryParams) => ({
+        categories: queryParams.get('categories'),
+        is_active: queryParams.get('is_active'),
+      }),
+    }),
+    [],
+  );
+
   const {
     columns,
     cleanSearchText,
@@ -114,34 +149,7 @@ const Table: React.FC = (props: TableProps) => {
     rowsPerPageOptions: ROWS_PER_PAGE_OPTIONS,
     debounceTime: DEBOUNCE_TIME,
     tableRef,
-    extraFilter: {
-      createValidationSchema: () =>
-        Yup.object().shape({
-          categories: Yup.mixed()
-            .nullable()
-            .transform((value) => (!value || value === '' ? undefined : value.split(',')))
-            .default(null),
-          is_active: Yup.string()
-            .nullable()
-            .transform((value) => (!value || !['Sim', 'Não'].includes(value) ? undefined : value))
-            .default(null),
-        }),
-      formatSearchParams: (debouncedState) =>
-        debouncedState.extraFilter
-          ? {
-              ...(debouncedState.extraFilter.categories && {
-                categories: debouncedState.extraFilter.categories.join(','),
-              }),
-              ...(debouncedState.extraFilter.is_active !== null && {
-                is_active: debouncedState.extraFilter.is_active,
-              }),
-            }
-          : undefined,
-      getStateFromUrl: (queryParams) => ({
-        categories: queryParams.get('categories'),
-        is_active: queryParams.get('is_active'),
-      }),
-    },
+    extraFilter,
   });
 
   // column categories
