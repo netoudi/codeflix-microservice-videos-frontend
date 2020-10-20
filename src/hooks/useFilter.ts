@@ -1,4 +1,4 @@
-import React, { Dispatch, Reducer, useEffect, useReducer, useState } from 'react';
+import React, { Dispatch, Reducer, useEffect, useMemo, useReducer, useState } from 'react';
 import { MUIDataTableColumn } from 'mui-datatables';
 import { useDebounce } from 'use-debounce';
 import { useHistory } from 'react-router';
@@ -10,6 +10,7 @@ import * as Yup from '../util/vendor/yup';
 import { MuiDataTableRefComponent } from '../components/DefaultTable';
 
 interface FilterManagerOptions {
+  schema: Yup.ObjectSchema;
   columns: MUIDataTableColumn[];
   rowsPerPage: number;
   rowsPerPageOptions: number[];
@@ -25,12 +26,56 @@ interface ExtraFilter {
   createValidationSchema: () => any;
 }
 
-type UseFilterOptions = Omit<FilterManagerOptions, 'history'>;
+type UseFilterOptions = Omit<FilterManagerOptions, 'history' | 'schema'>;
 
 export default function useFilter(options: UseFilterOptions) {
   const history = useHistory();
-  const filterManager = new FilterManager({ ...options, history });
-  const initialState = filterManager.getStateFromUrl();
+
+  const { rowsPerPage, rowsPerPageOptions, extraFilter, columns } = options;
+
+  const schema = useMemo(
+    () =>
+      Yup.object().shape<FilterState>({
+        search: Yup.string()
+          .transform((value) => (!value ? undefined : value))
+          .default(''),
+        pagination: Yup.object().shape({
+          page: Yup.number()
+            .transform((value) => (isNaN(value) || parseInt(value, 10) < 1 ? undefined : value))
+            .default(1),
+          total: Yup.number()
+            .transform((value) => (isNaN(value) || parseInt(value, 10) < 1 ? undefined : value))
+            .default(0),
+          per_page: Yup.number()
+            .transform((value) =>
+              isNaN(value) || !rowsPerPageOptions.includes(parseInt(value, 10)) ? undefined : value,
+            )
+            .default(rowsPerPage),
+        }),
+        order: Yup.object().shape({
+          sort: Yup.string()
+            .nullable()
+            .transform((value) => {
+              const columnsName = columns
+                .filter((column) => !column.options || column.options.sort !== false)
+                .map((column) => column.name);
+              return columnsName.includes(value) ? value : undefined;
+            })
+            .default(null),
+          dir: Yup.string()
+            .nullable()
+            .transform((value) =>
+              !value || !['asc', 'desc'].includes(value.toLowerCase()) ? undefined : value,
+            )
+            .default(null),
+        }),
+        ...(extraFilter && { extraFilter: extraFilter.createValidationSchema() }),
+      }),
+    [columns, extraFilter, rowsPerPage, rowsPerPageOptions],
+  );
+
+  const filterManager = new FilterManager({ ...options, history, schema });
+  const initialState = filterManager.getStateFromUrl() as FilterState;
   const [filterState, dispatch] = useReducer<Reducer<FilterState, FilterActions>>(
     reducer,
     initialState,
@@ -80,10 +125,11 @@ class FilterManager {
 
   extraFilter?: ExtraFilter;
 
-  schema;
+  schema: Yup.ObjectSchema;
 
   constructor(options: FilterManagerOptions) {
     const {
+      schema,
       columns,
       rowsPerPage,
       rowsPerPageOptions,
@@ -92,6 +138,8 @@ class FilterManager {
       tableRef,
       extraFilter,
     } = options;
+
+    this.schema = schema;
     this.columns = columns;
     this.rowsPerPage = rowsPerPage;
     this.rowsPerPageOptions = rowsPerPageOptions;
@@ -99,7 +147,6 @@ class FilterManager {
     this.history = history;
     this.tableRef = tableRef;
     this.extraFilter = extraFilter;
-    this.createValidationSchema();
   }
 
   changeSearch(value) {
@@ -131,7 +178,7 @@ class FilterManager {
       search: { value: null, update: true },
     };
 
-    this.dispatch(Creators.setReset({ state: initialState }));
+    // this.dispatch(Creators.setReset({ state: initialState }));
     this.resetTablePagination();
   }
 
@@ -216,43 +263,5 @@ class FilterManager {
   private resetTablePagination() {
     this.tableRef.current.changeRowsPerPage(this.rowsPerPage);
     this.tableRef.current.changePage(0);
-  }
-
-  private createValidationSchema() {
-    this.schema = Yup.object().shape({
-      search: Yup.string()
-        .transform((value) => (!value ? undefined : value))
-        .default(''),
-      pagination: Yup.object().shape({
-        page: Yup.number()
-          .transform((value) => (isNaN(value) || parseInt(value, 10) < 1 ? undefined : value))
-          .default(1),
-        per_page: Yup.number()
-          .transform((value) =>
-            isNaN(value) || !this.rowsPerPageOptions.includes(parseInt(value, 10))
-              ? undefined
-              : value,
-          )
-          .default(this.rowsPerPage),
-      }),
-      order: Yup.object().shape({
-        sort: Yup.string()
-          .nullable()
-          .transform((value) => {
-            const columnsName = this.columns
-              .filter((column) => !column.options || column.options.sort !== false)
-              .map((column) => column.name);
-            return columnsName.includes(value) ? value : undefined;
-          })
-          .default(null),
-        dir: Yup.string()
-          .nullable()
-          .transform((value) =>
-            !value || !['asc', 'desc'].includes(value.toLowerCase()) ? undefined : value,
-          )
-          .default(null),
-      }),
-      ...(this.extraFilter && { extraFilter: this.extraFilter.createValidationSchema() }),
-    });
   }
 }

@@ -44,6 +44,7 @@ module.exports = {
     'react/destructuring-assignment': 'off',
     'no-nested-ternary': 'off',
     'no-unused-expressions': 'off',
+    'no-restricted-globals': 'off',
     'react/jsx-wrap-multilines': ['error', { arrow: true, return: true, declaration: true }],
     'implicit-arrow-linebreak': 'off',
     'react/jsx-props-no-spreading': 'off',
