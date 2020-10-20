@@ -38,7 +38,12 @@ type UseFilterOptions = Omit<FilterManagerOptions, 'history' | 'schema'>;
 
 export default function useFilter(options: UseFilterOptions) {
   const history = useHistory();
-  const location = useLocation();
+
+  const {
+    search: locationSearch,
+    pathname: locationPathname,
+    state: locationState,
+  } = useLocation();
 
   const { rowsPerPage, rowsPerPageOptions, extraFilter, columns } = options;
 
@@ -85,7 +90,7 @@ export default function useFilter(options: UseFilterOptions) {
 
   // react-router history mutable | location immutable
   const stateFromUrl = useMemo<FilterState>(() => {
-    const queryParams = new URLSearchParams(location.search.substr(1));
+    const queryParams = new URLSearchParams(locationSearch.substr(1));
 
     return schema.cast({
       search: queryParams.get('search'),
@@ -99,7 +104,7 @@ export default function useFilter(options: UseFilterOptions) {
       },
       ...(extraFilter && { extraFilter: extraFilter.getStateFromUrl(queryParams) }),
     });
-  }, [extraFilter, location.search, schema]);
+  }, [extraFilter, locationSearch, schema]);
 
   const cleanSearchText = useCallback((text) => {
     let newText = text;
@@ -139,15 +144,41 @@ export default function useFilter(options: UseFilterOptions) {
   const [debounceFilterState] = useDebounce(filterState, options.debounceTime);
   const [totalRecords, setTotalRecords] = useState<number>(0);
 
+  // useEffect(() => {
+  //   history.replace({
+  //     pathname: locationPathname,
+  //     search: `?${new URLSearchParams(formatSearchParams(stateFromUrl) as any)}`,
+  //     state: stateFromUrl,
+  //   });
+  // }, [formatSearchParams, history, locationPathname, stateFromUrl]);
+
+  useEffect(() => {
+    const newLocation = {
+      pathname: locationPathname,
+      search: `?${new URLSearchParams(formatSearchParams(debounceFilterState) as any)}`,
+      state: { ...debounceFilterState, search: cleanSearchText(debounceFilterState.search) },
+    };
+
+    const oldState = locationState;
+    const nextState = debounceFilterState;
+
+    if (isEqual(oldState, nextState)) return;
+
+    history.push(newLocation);
+  }, [
+    cleanSearchText,
+    debounceFilterState,
+    formatSearchParams,
+    history,
+    locationPathname,
+    locationState,
+  ]);
+
   filterManager.state = filterState;
   filterManager.debouncedState = debounceFilterState;
   filterManager.dispatch = dispatch;
 
   filterManager.applyOderInColumns();
-
-  useEffect(() => {
-    filterManager.replaceHistory();
-  }, []); // eslint-disable-line
 
   return {
     columns: filterManager.columns,
@@ -230,12 +261,12 @@ class FilterManager {
   }
 
   resetFilter() {
-    const initialState = {
-      ...this.schema.cast({}),
+    const initialState: FilterState = {
+      ...(this.schema.cast({}) as FilterState),
       search: { value: null, update: true },
     };
 
-    // this.dispatch(Creators.setReset({ state: initialState }));
+    this.dispatch(Creators.setReset({ state: initialState }));
     this.resetTablePagination();
   }
 
@@ -251,53 +282,6 @@ class FilterManager {
         },
       };
     });
-  }
-
-  cleanSearchText(text) {
-    let newText = text;
-    if (text && text.value !== undefined) {
-      newText = text.value;
-    }
-    return newText;
-  }
-
-  replaceHistory() {
-    this.history.replace({
-      pathname: this.history.location.pathname,
-      search: `?${new URLSearchParams(this.formatSearchParams() as any)}`,
-      state: this.debouncedState,
-    });
-  }
-
-  pushHistory() {
-    const newLocation = {
-      pathname: this.history.location.pathname,
-      search: `?${new URLSearchParams(this.formatSearchParams() as any)}`,
-      state: { ...this.debouncedState, search: this.cleanSearchText(this.debouncedState.search) },
-    };
-
-    const oldState = this.history.location.state;
-    const nextState = this.debouncedState;
-
-    if (isEqual(oldState, nextState)) return;
-
-    this.history.push(newLocation);
-  }
-
-  private formatSearchParams() {
-    const search = this.cleanSearchText(this.debouncedState.search);
-
-    return {
-      ...(search && search !== '' && { search }),
-      ...(this.debouncedState.pagination.page !== 1 && {
-        page: this.debouncedState.pagination.page,
-      }),
-      ...(this.debouncedState.pagination.per_page !== 10 && {
-        per_page: this.debouncedState.pagination.per_page,
-      }),
-      ...(this.debouncedState.order.sort && { ...this.debouncedState.order }),
-      ...(this.extraFilter && this.extraFilter.formatSearchParams(this.debouncedState)),
-    };
   }
 
   private resetTablePagination() {

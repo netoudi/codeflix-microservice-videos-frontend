@@ -125,6 +125,7 @@ const Table: React.FC = (props: TableProps) => {
   } = useDeleteCollection();
   const {
     columns,
+    cleanSearchText,
     filterManager,
     filterState,
     debounceFilterState,
@@ -235,14 +236,13 @@ const Table: React.FC = (props: TableProps) => {
 
   useEffect(() => {
     subscribed.current = true;
-    filterManager.pushHistory();
     getData();
     return () => {
       subscribed.current = false;
     };
     // eslint-disable-next-line
   }, [
-    filterManager.cleanSearchText(debounceFilterState.search), // eslint-disable-line
+    cleanSearchText(debounceFilterState.search), // eslint-disable-line
     debounceFilterState.pagination.page,
     debounceFilterState.pagination.per_page,
     debounceFilterState.order,
@@ -253,7 +253,7 @@ const Table: React.FC = (props: TableProps) => {
     try {
       const response = await videoHttp.list<ListResponse<Video>>({
         queryParams: {
-          search: filterManager.cleanSearchText(debounceFilterState.search),
+          search: cleanSearchText(debounceFilterState.search),
           page: debounceFilterState.pagination.page,
           per_page: debounceFilterState.pagination.per_page,
           sort: debounceFilterState.order.sort,

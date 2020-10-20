@@ -102,6 +102,7 @@ const Table: React.FC = (props: TableProps) => {
   const tableRef = useRef() as MutableRefObject<MuiDataTableRefComponent>;
   const {
     columns,
+    cleanSearchText,
     filterManager,
     filterState,
     debounceFilterState,
@@ -188,14 +189,13 @@ const Table: React.FC = (props: TableProps) => {
 
   useEffect(() => {
     subscribed.current = true;
-    filterManager.pushHistory();
     getData();
     return () => {
       subscribed.current = false;
     };
     // eslint-disable-next-line
   }, [
-    filterManager.cleanSearchText(debounceFilterState.search), // eslint-disable-line
+    cleanSearchText(debounceFilterState.search), // eslint-disable-line
     debounceFilterState.pagination.page,
     debounceFilterState.pagination.per_page,
     debounceFilterState.order,
@@ -208,7 +208,7 @@ const Table: React.FC = (props: TableProps) => {
     try {
       const response = await genreHttp.list<ListResponse<Genre>>({
         queryParams: {
-          search: filterManager.cleanSearchText(filterState.search),
+          search: cleanSearchText(filterState.search),
           page: filterState.pagination.page,
           per_page: filterState.pagination.per_page,
           sort: filterState.order.sort,
