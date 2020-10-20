@@ -1,4 +1,12 @@
-import React, { Dispatch, Reducer, useEffect, useMemo, useReducer, useState } from 'react';
+import React, {
+  Dispatch,
+  Reducer,
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useState,
+} from 'react';
 import { MUIDataTableColumn } from 'mui-datatables';
 import { useDebounce } from 'use-debounce';
 import { useHistory, useLocation } from 'react-router';
@@ -93,6 +101,35 @@ export default function useFilter(options: UseFilterOptions) {
     });
   }, [extraFilter, location.search, schema]);
 
+  const cleanSearchText = useCallback((text) => {
+    let newText = text;
+
+    if (text && text.value !== undefined) {
+      newText = text.value;
+    }
+
+    return newText;
+  }, []);
+
+  const formatSearchParams = useCallback(
+    (state) => {
+      const search = cleanSearchText(state.search);
+
+      return {
+        ...(search && search !== '' && { search }),
+        ...(state.pagination.page !== 1 && {
+          page: state.pagination.page,
+        }),
+        ...(state.pagination.per_page !== 10 && {
+          per_page: state.pagination.per_page,
+        }),
+        ...(state.order.sort && { ...state.order }),
+        ...(extraFilter && extraFilter.formatSearchParams(state)),
+      };
+    },
+    [cleanSearchText, extraFilter],
+  );
+
   const filterManager = new FilterManager({ ...options, history, schema });
   const initialState = stateFromUrl as FilterState;
   const [filterState, dispatch] = useReducer<Reducer<FilterState, FilterActions>>(
@@ -114,6 +151,7 @@ export default function useFilter(options: UseFilterOptions) {
 
   return {
     columns: filterManager.columns,
+    cleanSearchText,
     filterManager,
     filterState,
     debounceFilterState,
