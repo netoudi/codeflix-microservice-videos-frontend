@@ -1,7 +1,7 @@
 import React, { Dispatch, Reducer, useEffect, useMemo, useReducer, useState } from 'react';
 import { MUIDataTableColumn } from 'mui-datatables';
 import { useDebounce } from 'use-debounce';
-import { useHistory } from 'react-router';
+import { useHistory, useLocation } from 'react-router';
 import { History } from 'history';
 import { isEqual } from 'lodash';
 import reducer, { Creators } from '../store/filter';
@@ -30,6 +30,7 @@ type UseFilterOptions = Omit<FilterManagerOptions, 'history' | 'schema'>;
 
 export default function useFilter(options: UseFilterOptions) {
   const history = useHistory();
+  const location = useLocation();
 
   const { rowsPerPage, rowsPerPageOptions, extraFilter, columns } = options;
 
@@ -74,8 +75,26 @@ export default function useFilter(options: UseFilterOptions) {
     [columns, extraFilter, rowsPerPage, rowsPerPageOptions],
   );
 
+  // react-router history mutable | location immutable
+  const stateFromUrl = useMemo<FilterState>(() => {
+    const queryParams = new URLSearchParams(location.search.substr(1));
+
+    return schema.cast({
+      search: queryParams.get('search'),
+      pagination: {
+        page: queryParams.get('page'),
+        per_page: queryParams.get('per_page'),
+      },
+      order: {
+        sort: queryParams.get('sort'),
+        dir: queryParams.get('dir'),
+      },
+      ...(extraFilter && { extraFilter: extraFilter.getStateFromUrl(queryParams) }),
+    });
+  }, [extraFilter, location.search, schema]);
+
   const filterManager = new FilterManager({ ...options, history, schema });
-  const initialState = filterManager.getStateFromUrl() as FilterState;
+  const initialState = stateFromUrl as FilterState;
   const [filterState, dispatch] = useReducer<Reducer<FilterState, FilterActions>>(
     reducer,
     initialState,
@@ -241,23 +260,6 @@ class FilterManager {
       ...(this.debouncedState.order.sort && { ...this.debouncedState.order }),
       ...(this.extraFilter && this.extraFilter.formatSearchParams(this.debouncedState)),
     };
-  }
-
-  getStateFromUrl() {
-    const queryParams = new URLSearchParams(this.history.location.search.substr(1));
-
-    return this.schema.cast({
-      search: queryParams.get('search'),
-      pagination: {
-        page: queryParams.get('page'),
-        per_page: queryParams.get('per_page'),
-      },
-      order: {
-        sort: queryParams.get('sort'),
-        dir: queryParams.get('dir'),
-      },
-      ...(this.extraFilter && { extraFilter: this.extraFilter.getStateFromUrl(queryParams) }),
-    });
   }
 
   private resetTablePagination() {
