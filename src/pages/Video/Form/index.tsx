@@ -16,8 +16,8 @@ import {
 } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
-import { useDispatch, useSelector } from 'react-redux';
-import { zipObject } from 'lodash';
+import { useDispatch } from 'react-redux';
+import { omit, zipObject } from 'lodash';
 import * as Yup from '../../../util/vendor/yup';
 import videoHttp from '../../../util/http/video-http';
 import { GetResponse, Video, VideoFileFieldsMap } from '../../../util/models';
@@ -32,7 +32,7 @@ import CastMemberField, { CastMemberFieldComponent } from './CastMemberField';
 import useSnackbarFormError from '../../../hooks/useSnackbarFormError';
 import LoadingContext from '../../../components/Loading/LoadingContext';
 import SnackbarUpload from '../../../components/SnackbarUpload';
-import { Upload, UploadModule } from '../../../store/upload/types';
+import { FileInfo } from '../../../store/upload/types';
 import { Creators as UploadCreators } from '../../../store/upload';
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -140,42 +140,7 @@ const Form: React.FC = () => {
     },
   });
 
-  const uploads = useSelector<UploadModule, Upload[]>((state) => state.upload.uploads);
-
-  console.info(JSON.stringify(uploads, null, 2));
-
   const dispatch = useDispatch();
-
-  useEffect(() => {
-    const upload: any = {
-      video: {
-        id: 'b9622f80-9dad-4594-9049-e0c3c2ca00c0',
-        title: 'Lorem ipsum dolor sit amet.',
-      },
-      files: [
-        { file: new File([''], 'video.mp4'), fileField: 'trailer_file' },
-        { file: new File([''], 'video.mp4'), fileField: 'video_file' },
-      ],
-    };
-
-    dispatch(UploadCreators.addUpload(upload));
-
-    // const progress1 = {
-    //   fileField: 'trailer_file',
-    //   progress: 10,
-    //   video: { id: 'b9622f80-9dad-4594-9049-e0c3c2ca00c0' },
-    // } as any;
-    //
-    // dispatch(UploadCreators.updateProgress(progress1));
-    //
-    // const progress2 = {
-    //   fileField: 'video_file',
-    //   progress: 20,
-    //   video: { id: 'b9622f80-9dad-4594-9049-e0c3c2ca00c0' },
-    // } as any;
-    //
-    // dispatch(UploadCreators.updateProgress(progress2));
-  }, [dispatch]);
 
   useSnackbarFormError(formState.submitCount, errors);
 
@@ -186,16 +151,6 @@ const Form: React.FC = () => {
   }, [register]);
 
   useEffect(() => {
-    enqueueSnackbar('', {
-      key: 'snackbar-upload',
-      persist: true,
-      anchorOrigin: {
-        vertical: 'bottom',
-        horizontal: 'right',
-      },
-      content: (key: any) => <SnackbarUpload id={key} />,
-    });
-
     if (!id) return;
 
     (async () => {
@@ -212,10 +167,12 @@ const Form: React.FC = () => {
   function onSubmit(formData, event) {
     (async () => {
       try {
+        const sendData = omit(formData, fileFields);
         const response = !video
-          ? await videoHttp.create(formData)
-          : await videoHttp.update(video.id, formData);
+          ? await videoHttp.create(sendData)
+          : await videoHttp.update(video.id, sendData);
         enqueueSnackbar('Vídeo salvo com sucesso.', { variant: 'success' });
+        uploadFiles(response.data.data);
         id && resetForm();
         setTimeout(() => {
           event
@@ -235,6 +192,31 @@ const Form: React.FC = () => {
     castMemberRef.current.clear();
     genreRef.current.clear();
     categoryRef.current.clear();
+  }
+
+  function uploadFiles(data) {
+    const files: FileInfo[] = fileFields
+      .filter((fileField) => getValues()[fileField] instanceof File)
+      .map((fileField) => ({
+        fileField,
+        file: getValues()[fileField],
+      }));
+
+    if (files.length === 0) {
+      return;
+    }
+
+    dispatch(UploadCreators.addUpload({ video: data, files }));
+
+    enqueueSnackbar('', {
+      key: 'snackbar-upload',
+      persist: true,
+      anchorOrigin: {
+        vertical: 'bottom',
+        horizontal: 'right',
+      },
+      content: (key: any) => <SnackbarUpload id={key} />,
+    });
   }
 
   return (

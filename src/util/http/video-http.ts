@@ -32,16 +32,16 @@ class VideoHttp extends HttpResource {
     const formData = new FormData();
 
     formData.append('_method', methodSpoofing);
-    formData.append('title', data.title);
-    formData.append('description', data.description);
-    formData.append('year_launched', data.year_launched);
-    formData.append('duration', data.duration);
-    formData.append('rating', data.rating);
-    formData.append('opened', data.opened);
+    data.title && formData.append('title', data.title);
+    data.description && formData.append('description', data.description);
+    data.year_launched && formData.append('year_launched', data.year_launched);
+    data.duration && formData.append('duration', data.duration);
+    data.rating && formData.append('rating', data.rating);
+    data.opened && formData.append('opened', data.opened);
 
-    data.cast_members.forEach((item) => formData.append('cast_members_id[]', item.id));
-    data.genres.forEach((item) => formData.append('genres_id[]', item.id));
-    data.categories.forEach((item) => formData.append('categories_id[]', item.id));
+    data.cast_members?.forEach((item) => formData.append('cast_members_id[]', item.id));
+    data.genres?.forEach((item) => formData.append('genres_id[]', item.id));
+    data.categories?.forEach((item) => formData.append('categories_id[]', item.id));
 
     Object.keys(VideoFileFieldsMap).forEach((field) => {
       if (data[field] instanceof File) {
