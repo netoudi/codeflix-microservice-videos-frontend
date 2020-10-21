@@ -1,4 +1,12 @@
-import React, { MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  MutableRefObject,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Link } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import { invert } from 'lodash';
@@ -10,6 +18,7 @@ import useFilter from '../../hooks/useFilter';
 import * as Yup from '../../util/vendor/yup';
 import categoryHttp from '../../util/http/category-http';
 import FilterResetButton from '../../components/DefaultTable/FilterResetButton';
+import LoadingContext from '../../components/Loading/LoadingContext';
 
 const DEBOUNCE_TIME = 300;
 const DEBOUNCE_SEARCH_TIME = 300;
@@ -86,7 +95,7 @@ const Table: React.FC = (props: TableProps) => {
   const { enqueueSnackbar } = useSnackbar();
   const subscribed = useRef(true);
   const [castMembers, setCastMembers] = useState<CastMember[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const loading = useContext(LoadingContext);
   const tableRef = useRef() as MutableRefObject<MuiDataTableRefComponent>;
 
   const extraFilter = useMemo(
@@ -144,8 +153,6 @@ const Table: React.FC = (props: TableProps) => {
 
   const getData = useCallback(
     async ({ search, page, per_page, sort, dir, type }) => {
-      setLoading(true);
-
       try {
         const response = await castMemberHttp.list<ListResponse<CastMember>>({
           queryParams: { search, page, per_page, sort, dir, type },
@@ -157,8 +164,6 @@ const Table: React.FC = (props: TableProps) => {
       } catch (error) {
         if (categoryHttp.isCancelledRequest(error)) return;
         enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
-      } finally {
-        setLoading(false);
       }
     },
     [enqueueSnackbar, setTotalRecords],

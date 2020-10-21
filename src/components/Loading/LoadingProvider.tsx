@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { omit } from 'lodash';
 import LoadingContext from './LoadingContext';
 import {
   addGlobalRequestInterceptor,
@@ -8,6 +7,10 @@ import {
   removeGlobalResponseInterceptor,
 } from '../../util/http';
 
+function hasOwnProperty(obj: object, property: string) {
+  return Object.prototype.hasOwnProperty.call(obj, property);
+}
+
 const LoadingProvider: React.FC = (props) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [countRequest, setCountRequest] = useState(0);
@@ -15,28 +18,27 @@ const LoadingProvider: React.FC = (props) => {
   useMemo(() => {
     let isSubscribed = true;
 
+    // axios.interceptors.request.use();
     const requestIds = addGlobalRequestInterceptor((config) => {
-      if (isSubscribed && !Object.prototype.hasOwnProperty.call(config, 'ignoreLoading')) {
+      if (isSubscribed && !hasOwnProperty(config.headers, 'X-Ignore-Loading')) {
         setLoading(true);
         incrementCountRequest();
       }
 
-      return {
-        ...config,
-        headers: omit(config.headers, 'ignoreLoading'),
-      };
+      return config;
     });
 
+    // axios.interceptors.response.use();
     const responseIds = addGlobalResponseInterceptor(
       (response) => {
-        if (isSubscribed) {
+        if (isSubscribed && !hasOwnProperty(response.config.headers, 'X-Ignore-Loading')) {
           decrementCountRequest();
         }
 
         return response;
       },
       (error) => {
-        if (isSubscribed) {
+        if (isSubscribed && !hasOwnProperty(error.config.headers, 'X-Ignore-Loading')) {
           decrementCountRequest();
         }
 

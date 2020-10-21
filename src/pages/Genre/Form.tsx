@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router';
 import { Checkbox, FormControlLabel, MenuItem, TextField } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
@@ -9,6 +9,7 @@ import categoryHttp from '../../util/http/category-http';
 import { Category, Genre } from '../../util/models';
 import SubmitActions from '../../components/SubmitActions';
 import DefaultForm from '../../components/DefaultForm';
+import LoadingContext from '../../components/Loading/LoadingContext';
 
 interface GenreForm {
   name: string;
@@ -32,7 +33,7 @@ const Form: React.FC = () => {
   const { enqueueSnackbar } = useSnackbar();
   const [genre, setGenre] = useState<Genre | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const loading = useContext(LoadingContext);
 
   const {
     register,
@@ -60,8 +61,6 @@ const Form: React.FC = () => {
     let isSubscribed = true;
 
     (async () => {
-      setLoading(true);
-
       try {
         const promises = [categoryHttp.list({ queryParams: { all: true } })];
 
@@ -82,8 +81,6 @@ const Form: React.FC = () => {
         }
       } catch (error) {
         enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
-      } finally {
-        setLoading(false);
       }
     })();
 
@@ -97,8 +94,6 @@ const Form: React.FC = () => {
   };
 
   function onSubmit(formData, event) {
-    setLoading(true);
-
     const http = !genre ? genreHttp.create(formData) : genreHttp.update(genre.id, formData);
 
     http
@@ -115,8 +110,7 @@ const Form: React.FC = () => {
       .catch((error) => {
         enqueueSnackbar('Não foi possível salvar o gênero.', { variant: 'error' });
         console.log(error);
-      })
-      .finally(() => setLoading(false));
+      });
   }
 
   return (

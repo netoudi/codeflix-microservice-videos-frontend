@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router';
 import { Checkbox, FormControlLabel, TextField } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
@@ -8,6 +8,7 @@ import categoryHttp from '../../util/http/category-http';
 import { Category, GetResponse } from '../../util/models';
 import SubmitActions from '../../components/SubmitActions';
 import DefaultForm from '../../components/DefaultForm';
+import LoadingContext from '../../components/Loading/LoadingContext';
 
 const validationSchema = Yup.object().shape({
   name: Yup.string()
@@ -21,7 +22,7 @@ const Form: React.FC = () => {
   const history = useHistory();
   const { enqueueSnackbar } = useSnackbar();
   const [category, setCategory] = useState<Category | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const loading = useContext(LoadingContext);
 
   const {
     register,
@@ -46,8 +47,6 @@ const Form: React.FC = () => {
   useEffect(() => {
     if (!id) return;
 
-    setLoading(true);
-
     (async () => {
       try {
         const response = await categoryHttp.get<GetResponse<Category>>(id);
@@ -55,15 +54,11 @@ const Form: React.FC = () => {
         reset(response.data.data);
       } catch (error) {
         enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
-      } finally {
-        setLoading(false);
       }
     })();
   }, [id, reset, enqueueSnackbar]);
 
   function onSubmit(formData, event) {
-    setLoading(true);
-
     (async () => {
       try {
         const response = !category
@@ -79,8 +74,6 @@ const Form: React.FC = () => {
         });
       } catch (error) {
         enqueueSnackbar('Não foi possível salvar a categoria.', { variant: 'error' });
-      } finally {
-        setLoading(false);
       }
     })();
   }
