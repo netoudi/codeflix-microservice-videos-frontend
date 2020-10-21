@@ -1,4 +1,12 @@
-import React, { MutableRefObject, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  MutableRefObject,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Link } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import genreHttp from '../../util/http/genre-http';
@@ -214,6 +222,94 @@ const Table: React.FC = (props: TableProps) => {
     serverSideFilterList[indexColumnOpened] = [openedFilterValue];
   }
 
+  const searchText = cleanSearchText(debounceFilterState.search);
+
+  const getData = useCallback(
+    async ({ search, page, per_page, sort, dir, genres, categories, opened }) => {
+      try {
+        const response = await videoHttp.list<ListResponse<Video>>({
+          queryParams: { search, page, per_page, sort, dir, genres, categories, opened },
+        });
+        if (subscribed.current) {
+          setVideos(response.data.data);
+          setTotalRecords(response.data.meta.total);
+
+          if (openDeleteDialog) {
+            setOpenDeleteDialog(false);
+          }
+        }
+      } catch (error) {
+        if (videoHttp.isCancelledRequest(error)) return;
+        enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
+      }
+    },
+    [enqueueSnackbar, openDeleteDialog, setOpenDeleteDialog, setTotalRecords],
+  );
+
+  const deleteRows = useCallback(
+    (confirmed: boolean) => {
+      if (!confirmed) {
+        setOpenDeleteDialog(false);
+        return;
+      }
+
+      const ids = rowsToDelete.data.map((value) => videos[value.index].id).join(',');
+
+      videoHttp
+        .deleteCollection({ ids })
+        .then((response) => {
+          enqueueSnackbar('Registros excluídos com sucesso.', { variant: 'success' });
+
+          if (
+            rowsToDelete.data.length === filterState.pagination.per_page &&
+            filterState.pagination.page > 1
+          ) {
+            const page = filterState.pagination.page - 2;
+            filterManager.changePage(page);
+          } else {
+            getData({
+              search: searchText,
+              page: debounceFilterState.pagination.page,
+              per_page: debounceFilterState.pagination.per_page,
+              sort: debounceFilterState.order.sort,
+              dir: debounceFilterState.order.dir,
+              ...(debounceFilterState.extraFilter &&
+                debounceFilterState.extraFilter.genres && {
+                  genres: debounceFilterState.extraFilter.genres.join(','),
+                }),
+              ...(debounceFilterState.extraFilter &&
+                debounceFilterState.extraFilter.categories && {
+                  categories: debounceFilterState.extraFilter.categories.join(','),
+                }),
+              ...(debounceFilterState.extraFilter &&
+                debounceFilterState.extraFilter.opened !== null && {
+                  opened: debounceFilterState.extraFilter.opened === 'Sim',
+                }),
+            });
+          }
+        })
+        .catch((error) => {
+          enqueueSnackbar('Não foi possível excluir os registros.', { variant: 'error' });
+        });
+    },
+    [
+      debounceFilterState.extraFilter,
+      debounceFilterState.order.dir,
+      debounceFilterState.order.sort,
+      debounceFilterState.pagination.page,
+      debounceFilterState.pagination.per_page,
+      enqueueSnackbar,
+      filterManager,
+      filterState.pagination.page,
+      filterState.pagination.per_page,
+      getData,
+      rowsToDelete.data,
+      searchText,
+      setOpenDeleteDialog,
+      videos,
+    ],
+  );
+
   useEffect(() => {
     let isSubscribed = true;
 
@@ -244,83 +340,37 @@ const Table: React.FC = (props: TableProps) => {
 
   useEffect(() => {
     subscribed.current = true;
-    getData();
+    getData({
+      search: searchText,
+      page: debounceFilterState.pagination.page,
+      per_page: debounceFilterState.pagination.per_page,
+      sort: debounceFilterState.order.sort,
+      dir: debounceFilterState.order.dir,
+      ...(debounceFilterState.extraFilter &&
+        debounceFilterState.extraFilter.genres && {
+          genres: debounceFilterState.extraFilter.genres.join(','),
+        }),
+      ...(debounceFilterState.extraFilter &&
+        debounceFilterState.extraFilter.categories && {
+          categories: debounceFilterState.extraFilter.categories.join(','),
+        }),
+      ...(debounceFilterState.extraFilter &&
+        debounceFilterState.extraFilter.opened !== null && {
+          opened: debounceFilterState.extraFilter.opened === 'Sim',
+        }),
+    });
     return () => {
       subscribed.current = false;
     };
-    // eslint-disable-next-line
   }, [
-    cleanSearchText(debounceFilterState.search), // eslint-disable-line
+    debounceFilterState.extraFilter,
+    debounceFilterState.order.dir,
+    debounceFilterState.order.sort,
     debounceFilterState.pagination.page,
     debounceFilterState.pagination.per_page,
-    debounceFilterState.order,
-    JSON.stringify(debounceFilterState.extraFilter), // eslint-disable-line
+    getData,
+    searchText,
   ]);
-
-  async function getData() {
-    try {
-      const response = await videoHttp.list<ListResponse<Video>>({
-        queryParams: {
-          search: cleanSearchText(debounceFilterState.search),
-          page: debounceFilterState.pagination.page,
-          per_page: debounceFilterState.pagination.per_page,
-          sort: debounceFilterState.order.sort,
-          dir: debounceFilterState.order.dir,
-          ...(debounceFilterState.extraFilter &&
-            debounceFilterState.extraFilter.genres && {
-              genres: debounceFilterState.extraFilter.genres.join(','),
-            }),
-          ...(debounceFilterState.extraFilter &&
-            debounceFilterState.extraFilter.categories && {
-              categories: debounceFilterState.extraFilter.categories.join(','),
-            }),
-          ...(debounceFilterState.extraFilter &&
-            debounceFilterState.extraFilter.opened !== null && {
-              opened: debounceFilterState.extraFilter.opened === 'Sim',
-            }),
-        },
-      });
-      if (subscribed.current) {
-        setVideos(response.data.data);
-        setTotalRecords(response.data.meta.total);
-
-        if (openDeleteDialog) {
-          setOpenDeleteDialog(false);
-        }
-      }
-    } catch (error) {
-      if (videoHttp.isCancelledRequest(error)) return;
-      enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
-    }
-  }
-
-  function deleteRows(confirmed: boolean) {
-    if (!confirmed) {
-      setOpenDeleteDialog(false);
-      return;
-    }
-
-    const ids = rowsToDelete.data.map((value) => videos[value.index].id).join(',');
-
-    videoHttp
-      .deleteCollection({ ids })
-      .then((response) => {
-        enqueueSnackbar('Registros excluídos com sucesso.', { variant: 'success' });
-
-        if (
-          rowsToDelete.data.length === filterState.pagination.per_page &&
-          filterState.pagination.page > 1
-        ) {
-          const page = filterState.pagination.page - 2;
-          filterManager.changePage(page);
-        } else {
-          getData();
-        }
-      })
-      .catch((error) => {
-        enqueueSnackbar('Não foi possível excluir os registros.', { variant: 'error' });
-      });
-  }
 
   return (
     <>

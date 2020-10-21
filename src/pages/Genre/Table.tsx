@@ -1,4 +1,4 @@
-import React, { MutableRefObject, useEffect, useMemo, useRef, useState } from 'react';
+import React, { MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import genreHttp from '../../util/http/genre-http';
@@ -174,6 +174,31 @@ const Table: React.FC = (props: TableProps) => {
     serverSideFilterList[indexColumnIsActive] = [isActiveFilterValue];
   }
 
+  const searchText = cleanSearchText(filterState.search);
+
+  const getData = useCallback(
+    async ({ search, page, per_page, sort, dir, categories, is_active }) => {
+      setLoading(true);
+
+      try {
+        const response = await genreHttp.list<ListResponse<Genre>>({
+          queryParams: { search, page, per_page, sort, dir, categories, is_active },
+        });
+
+        if (subscribed.current) {
+          setGenres(response.data.data);
+          setTotalRecords(response.data.meta.total);
+        }
+      } catch (error) {
+        if (categoryHttp.isCancelledRequest(error)) return;
+        enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
+      } finally {
+        setLoading(false);
+      }
+    },
+    [enqueueSnackbar, setTotalRecords],
+  );
+
   useEffect(() => {
     let isSubscribed = true;
 
@@ -197,52 +222,33 @@ const Table: React.FC = (props: TableProps) => {
 
   useEffect(() => {
     subscribed.current = true;
-    getData();
+    getData({
+      search: searchText,
+      page: filterState.pagination.page,
+      per_page: filterState.pagination.per_page,
+      sort: filterState.order.sort,
+      dir: filterState.order.dir,
+      ...(debounceFilterState.extraFilter &&
+        debounceFilterState.extraFilter.categories && {
+          categories: debounceFilterState.extraFilter.categories.join(','),
+        }),
+      ...(debounceFilterState.extraFilter &&
+        debounceFilterState.extraFilter.is_active !== null && {
+          is_active: debounceFilterState.extraFilter.is_active === 'Sim',
+        }),
+    });
     return () => {
       subscribed.current = false;
     };
-    // eslint-disable-next-line
   }, [
-    cleanSearchText(debounceFilterState.search), // eslint-disable-line
-    debounceFilterState.pagination.page,
-    debounceFilterState.pagination.per_page,
-    debounceFilterState.order,
-    JSON.stringify(debounceFilterState.extraFilter), // eslint-disable-line
+    debounceFilterState.extraFilter,
+    filterState.order.dir,
+    filterState.order.sort,
+    filterState.pagination.page,
+    filterState.pagination.per_page,
+    getData,
+    searchText,
   ]);
-
-  async function getData() {
-    setLoading(true);
-
-    try {
-      const response = await genreHttp.list<ListResponse<Genre>>({
-        queryParams: {
-          search: cleanSearchText(filterState.search),
-          page: filterState.pagination.page,
-          per_page: filterState.pagination.per_page,
-          sort: filterState.order.sort,
-          dir: filterState.order.dir,
-          ...(debounceFilterState.extraFilter &&
-            debounceFilterState.extraFilter.categories && {
-              categories: debounceFilterState.extraFilter.categories.join(','),
-            }),
-          ...(debounceFilterState.extraFilter &&
-            debounceFilterState.extraFilter.is_active !== null && {
-              is_active: debounceFilterState.extraFilter.is_active === 'Sim',
-            }),
-        },
-      });
-
-      if (subscribed.current) {
-        setGenres(response.data.data);
-        setTotalRecords(response.data.meta.total);
-      }
-    } catch (error) {
-      if (categoryHttp.isCancelledRequest(error)) return;
-      enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
-    } finally {
-      setLoading(false);
-    }
-  }
 
   return (
     <DefaultTable
