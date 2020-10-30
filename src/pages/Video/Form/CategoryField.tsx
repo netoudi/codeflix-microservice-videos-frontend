@@ -7,6 +7,7 @@ import {
   makeStyles,
   Theme,
   Typography,
+  useTheme,
 } from '@material-ui/core';
 import { grey } from '@material-ui/core/colors';
 import AsyncAutocomplete, {
@@ -48,6 +49,7 @@ const CategoryField: React.RefForwardingComponent<CategoryFieldComponent, Catego
   const autoCompleteHttp = useHttpHandled();
   const { addItem, removeItem } = useCollectionManager(categories, setCategories);
   const autocompleteRef = useRef() as MutableRefObject<AsyncAutocompleteComponent>;
+  const theme = useTheme();
 
   function fetchOptions(searchText) {
     return autoCompleteHttp(
@@ -79,6 +81,9 @@ const CategoryField: React.RefForwardingComponent<CategoryFieldComponent, Catego
         }}
         TextFieldProps={{ label: 'Categorias', error: error !== undefined }}
       />
+      <FormHelperText style={{ height: theme.spacing(3) }}>
+        Escolha pelo menos uma categoria de cada gênero.
+      </FormHelperText>
       <FormControl
         fullWidth
         margin="none"

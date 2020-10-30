@@ -5,7 +5,6 @@ import {
   CardContent,
   Checkbox,
   FormControlLabel,
-  FormHelperText,
   Grid,
   makeStyles,
   TextField,
@@ -221,10 +220,6 @@ const Form: React.FC = () => {
 
   return (
     <DefaultForm GridItemProps={{ xs: 12 }} onSubmit={handleSubmit(onSubmit)}>
-      <pre style={{ padding: 20, backgroundColor: '#3333', fontSize: 16 }}>
-        {JSON.stringify(getValues(), null, 2)}
-      </pre>
-
       <Grid container spacing={5}>
         <Grid item xs={12} md={6}>
           <TextField
@@ -312,10 +307,6 @@ const Form: React.FC = () => {
                 error={errors.categories}
                 disabled={loading}
               />
-            </Grid>
-            <Grid item xs={12}>
-              <FormHelperText>Escolha os gêneros do vídeo.</FormHelperText>
-              <FormHelperText>Escolha pelo menos uma categoria de cada gênero.</FormHelperText>
             </Grid>
           </Grid>
         </Grid>

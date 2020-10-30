@@ -3,7 +3,7 @@ import { Grid, GridProps, makeStyles, Theme } from '@material-ui/core';
 
 const useStyles = makeStyles((theme: Theme) => ({
   gridItem: {
-    padding: theme.spacing(1, 0),
+    // padding: theme.spacing(1, 0),
   },
 }));
 

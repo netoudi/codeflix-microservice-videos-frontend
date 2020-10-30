@@ -79,7 +79,11 @@ const Form: React.FC = () => {
   }
 
   return (
-    <DefaultForm onSubmit={handleSubmit(onSubmit)}>
+    <DefaultForm
+      GridContainerProps={{ spacing: 5 }}
+      GridItemProps={{ xs: 12, md: 6 }}
+      onSubmit={handleSubmit(onSubmit)}
+    >
       <TextField
         name="name"
         label="Nome"

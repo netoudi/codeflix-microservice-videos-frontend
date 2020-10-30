@@ -17,6 +17,6 @@ export const BadgeYes = () => (
 
 export const BadgeNo = () => (
   <MuiThemeProvider theme={localTheme}>
-    <Chip label="Sim" color="secondary" />
+    <Chip label="Não" color="secondary" />
   </MuiThemeProvider>
 );

@@ -114,10 +114,11 @@ const Form: React.FC = () => {
   }
 
   return (
-    <DefaultForm onSubmit={handleSubmit(onSubmit)}>
-      <pre style={{ padding: 20, backgroundColor: '#3333', fontSize: 16 }}>
-        {JSON.stringify(errors, null, 2)}
-      </pre>
+    <DefaultForm
+      GridContainerProps={{ spacing: 5 }}
+      GridItemProps={{ xs: 12, md: 6 }}
+      onSubmit={handleSubmit(onSubmit)}
+    >
       <TextField
         name="name"
         label="Nome"
