@@ -19,6 +19,8 @@ import * as Yup from '../../util/vendor/yup';
 import categoryHttp from '../../util/http/category-http';
 import FilterResetButton from '../../components/DefaultTable/FilterResetButton';
 import LoadingContext from '../../components/Loading/LoadingContext';
+import useDeleteCollection from '../../hooks/useDeleteCollection';
+import DeleteDialog from '../../components/DeleteDialog';
 
 const DEBOUNCE_TIME = 300;
 const DEBOUNCE_SEARCH_TIME = 300;
@@ -109,6 +111,12 @@ const Table: React.FC = (props: TableProps) => {
   const [genres, setGenres] = useState<Genre[]>([]);
   const loading = useContext(LoadingContext);
   const tableRef = useRef() as MutableRefObject<MuiDataTableRefComponent>;
+  const {
+    openDeleteDialog,
+    setOpenDeleteDialog,
+    rowsToDelete,
+    setRowsToDelete,
+  } = useDeleteCollection();
 
   const extraFilter = useMemo(
     () => ({
@@ -204,6 +212,65 @@ const Table: React.FC = (props: TableProps) => {
     [enqueueSnackbar, setTotalRecords],
   );
 
+  const deleteRows = useCallback(
+    (confirmed: boolean) => {
+      setOpenDeleteDialog(false);
+
+      if (!confirmed) {
+        return;
+      }
+
+      const ids = rowsToDelete.data.map((value) => genres[value.index].id).join(',');
+
+      genreHttp
+        .deleteCollection({ ids })
+        .then((response) => {
+          enqueueSnackbar('Registros excluídos com sucesso.', { variant: 'success' });
+
+          if (
+            rowsToDelete.data.length === filterState.pagination.per_page &&
+            filterState.pagination.page > 1
+          ) {
+            const page = filterState.pagination.page - 2;
+            filterManager.changePage(page);
+          } else {
+            getData({
+              search: searchText,
+              page: filterState.pagination.page,
+              per_page: filterState.pagination.per_page,
+              sort: filterState.order.sort,
+              dir: filterState.order.dir,
+              ...(debounceFilterState.extraFilter &&
+                debounceFilterState.extraFilter.categories && {
+                  categories: debounceFilterState.extraFilter.categories.join(','),
+                }),
+              ...(debounceFilterState.extraFilter &&
+                debounceFilterState.extraFilter.is_active !== null && {
+                  is_active: debounceFilterState.extraFilter.is_active === 'Sim',
+                }),
+            });
+          }
+        })
+        .catch((error) => {
+          enqueueSnackbar('Não foi possível excluir os registros.', { variant: 'error' });
+        });
+    },
+    [
+      debounceFilterState.extraFilter,
+      enqueueSnackbar,
+      filterManager,
+      filterState.order.dir,
+      filterState.order.sort,
+      filterState.pagination.page,
+      filterState.pagination.per_page,
+      genres,
+      getData,
+      rowsToDelete.data,
+      searchText,
+      setOpenDeleteDialog,
+    ],
+  );
+
   useEffect(() => {
     let isSubscribed = true;
 
@@ -256,47 +323,56 @@ const Table: React.FC = (props: TableProps) => {
   ]);
 
   return (
-    <DefaultTable
-      title=""
-      columns={columns}
-      data={genres}
-      loading={loading}
-      debouncedSearchTime={DEBOUNCE_SEARCH_TIME}
-      ref={tableRef}
-      options={{
-        serverSide: true,
-        serverSideFilterList,
-        responsive: 'scrollMaxHeight',
-        searchText: filterState.search as any,
-        page: filterState.pagination.page - 1,
-        rowsPerPage: filterState.pagination.per_page,
-        rowsPerPageOptions: ROWS_PER_PAGE_OPTIONS,
-        count: totalRecords,
-        customToolbar: () => <FilterResetButton handleClick={() => filterManager.resetFilter()} />,
-        onFilterChange: (changedColumn, filterList) => {
-          if (changedColumn === 'is_active') {
-            filterManager.changeExtraFilter({
-              [changedColumn]:
-                filterList[indexColumnIsActive][0] !== undefined
-                  ? filterList[indexColumnIsActive][0]
-                  : null,
-            });
-          }
+    <>
+      <DeleteDialog open={openDeleteDialog} handleClose={deleteRows} />
+      <DefaultTable
+        title=""
+        columns={columns}
+        data={genres}
+        loading={loading}
+        debouncedSearchTime={DEBOUNCE_SEARCH_TIME}
+        ref={tableRef}
+        options={{
+          serverSide: true,
+          serverSideFilterList,
+          responsive: 'scrollMaxHeight',
+          searchText: filterState.search as any,
+          page: filterState.pagination.page - 1,
+          rowsPerPage: filterState.pagination.per_page,
+          rowsPerPageOptions: ROWS_PER_PAGE_OPTIONS,
+          count: totalRecords,
+          customToolbar: () => (
+            <FilterResetButton handleClick={() => filterManager.resetFilter()} />
+          ),
+          onFilterChange: (changedColumn, filterList) => {
+            if (changedColumn === 'is_active') {
+              filterManager.changeExtraFilter({
+                [changedColumn]:
+                  filterList[indexColumnIsActive][0] !== undefined
+                    ? filterList[indexColumnIsActive][0]
+                    : null,
+              });
+            }
 
-          if (changedColumn === 'categories') {
-            const columnIndex = columns.findIndex((column) => column.name === changedColumn);
-            filterManager.changeExtraFilter({
-              [changedColumn]: filterList[columnIndex].length ? filterList[columnIndex] : null,
-            });
-          }
-        },
-        onSearchChange: (value) => filterManager.changeSearch(value),
-        onChangePage: (page) => filterManager.changePage(page),
-        onChangeRowsPerPage: (perPage) => filterManager.changeRowsPerPage(perPage),
-        onColumnSortChange: (changedColumn, direction) =>
-          filterManager.changeColumnSort(changedColumn, direction),
-      }}
-    />
+            if (changedColumn === 'categories') {
+              const columnIndex = columns.findIndex((column) => column.name === changedColumn);
+              filterManager.changeExtraFilter({
+                [changedColumn]: filterList[columnIndex].length ? filterList[columnIndex] : null,
+              });
+            }
+          },
+          onSearchChange: (value) => filterManager.changeSearch(value),
+          onChangePage: (page) => filterManager.changePage(page),
+          onChangeRowsPerPage: (perPage) => filterManager.changeRowsPerPage(perPage),
+          onColumnSortChange: (changedColumn, direction) =>
+            filterManager.changeColumnSort(changedColumn, direction),
+          onRowsDelete: (rowsDeleted: any[]) => {
+            setRowsToDelete(rowsDeleted as any);
+            return false;
+          },
+        }}
+      />
+    </>
   );
 };
 

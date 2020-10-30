@@ -248,8 +248,9 @@ const Table: React.FC = (props: TableProps) => {
 
   const deleteRows = useCallback(
     (confirmed: boolean) => {
+      setOpenDeleteDialog(false);
+
       if (!confirmed) {
-        setOpenDeleteDialog(false);
         return;
       }
 
@@ -417,7 +418,6 @@ const Table: React.FC = (props: TableProps) => {
           onColumnSortChange: (changedColumn, direction) =>
             filterManager.changeColumnSort(changedColumn, direction),
           onRowsDelete: (rowsDeleted: any[]) => {
-            console.info(JSON.stringify(rowsDeleted, null, 2));
             setRowsToDelete(rowsDeleted as any);
             return false;
           },
