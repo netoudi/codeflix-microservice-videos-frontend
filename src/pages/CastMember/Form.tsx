@@ -17,6 +17,7 @@ import { CastMember, GetResponse } from '../../util/models';
 import SubmitActions from '../../components/SubmitActions';
 import DefaultForm from '../../components/DefaultForm';
 import LoadingContext from '../../components/Loading/LoadingContext';
+import useSnackbarFormError from '../../hooks/useSnackbarFormError';
 
 const validationSchema = Yup.object().shape({
   name: Yup.string()
@@ -44,7 +45,10 @@ const Form: React.FC = () => {
     reset,
     watch,
     triggerValidation,
+    formState,
   } = useForm<CastMember>({ validationSchema });
+
+  useSnackbarFormError(formState.submitCount, errors);
 
   useEffect(() => {
     register({ name: 'type' });

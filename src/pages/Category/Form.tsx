@@ -9,6 +9,7 @@ import { Category, GetResponse } from '../../util/models';
 import SubmitActions from '../../components/SubmitActions';
 import DefaultForm from '../../components/DefaultForm';
 import LoadingContext from '../../components/Loading/LoadingContext';
+import useSnackbarFormError from '../../hooks/useSnackbarFormError';
 
 const validationSchema = Yup.object().shape({
   name: Yup.string()
@@ -33,12 +34,15 @@ const Form: React.FC = () => {
     reset,
     watch,
     triggerValidation,
+    formState,
   } = useForm<Category>({
     validationSchema,
     defaultValues: {
       is_active: true,
     },
   });
+
+  useSnackbarFormError(formState.submitCount, errors);
 
   useEffect(() => {
     register({ name: 'is_active' });

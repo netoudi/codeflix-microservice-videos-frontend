@@ -10,6 +10,7 @@ import { Category, Genre } from '../../util/models';
 import SubmitActions from '../../components/SubmitActions';
 import DefaultForm from '../../components/DefaultForm';
 import LoadingContext from '../../components/Loading/LoadingContext';
+import useSnackbarFormError from '../../hooks/useSnackbarFormError';
 
 interface GenreForm {
   name: string;
@@ -44,6 +45,7 @@ const Form: React.FC = () => {
     reset,
     watch,
     triggerValidation,
+    formState,
   } = useForm<GenreForm>({
     validationSchema,
     defaultValues: {
@@ -51,6 +53,8 @@ const Form: React.FC = () => {
       is_active: false,
     },
   });
+
+  useSnackbarFormError(formState.submitCount, errors);
 
   useEffect(() => {
     register({ name: 'categories_id' });
