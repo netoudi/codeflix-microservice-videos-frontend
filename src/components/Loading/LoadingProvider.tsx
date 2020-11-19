@@ -8,7 +8,7 @@ import {
 } from '../../util/http';
 
 function hasOwnProperty(obj: object, property: string) {
-  return Object.prototype.hasOwnProperty.call(obj, property);
+  return obj !== undefined && Object.prototype.hasOwnProperty.call(obj, property);
 }
 
 const LoadingProvider: React.FC = (props) => {
@@ -20,7 +20,7 @@ const LoadingProvider: React.FC = (props) => {
 
     // axios.interceptors.request.use();
     const requestIds = addGlobalRequestInterceptor((config) => {
-      if (isSubscribed && !hasOwnProperty(config.headers, 'X-Ignore-Loading')) {
+      if (isSubscribed && !hasOwnProperty(config?.headers, 'X-Ignore-Loading')) {
         setLoading(true);
         incrementCountRequest();
       }
@@ -31,14 +31,14 @@ const LoadingProvider: React.FC = (props) => {
     // axios.interceptors.response.use();
     const responseIds = addGlobalResponseInterceptor(
       (response) => {
-        if (isSubscribed && !hasOwnProperty(response.config.headers, 'X-Ignore-Loading')) {
+        if (isSubscribed && !hasOwnProperty(response.config?.headers, 'X-Ignore-Loading')) {
           decrementCountRequest();
         }
 
         return response;
       },
       (error) => {
-        if (isSubscribed && !hasOwnProperty(error.config.headers, 'X-Ignore-Loading')) {
+        if (isSubscribed && !hasOwnProperty(error.config?.headers, 'X-Ignore-Loading')) {
           decrementCountRequest();
         }
 
