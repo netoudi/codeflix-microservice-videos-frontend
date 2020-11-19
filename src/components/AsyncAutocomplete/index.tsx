@@ -2,6 +2,7 @@ import React, { RefAttributes, useEffect, useImperativeHandle, useState } from '
 import { CircularProgress, TextField, TextFieldProps } from '@material-ui/core';
 import { Autocomplete, AutocompleteProps, UseAutocompleteSingleProps } from '@material-ui/lab';
 import { useDebounce } from 'use-debounce';
+import { useSnackbar } from 'notistack';
 
 interface AsyncAutocompleteProps extends RefAttributes<AsyncAutocompleteComponent> {
   fetchOptions: (searchText) => Promise<any>;
@@ -22,6 +23,7 @@ const AsyncAutocomplete: React.RefForwardingComponent<
   AsyncAutocompleteProps
 > = (props, ref) => {
   const { fetchOptions } = props;
+  const { enqueueSnackbar } = useSnackbar();
   const { freeSolo = false, onOpen, onClose, onInputChange } = props.AutocompleteProps as any;
   const [open, setOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
@@ -81,7 +83,7 @@ const AsyncAutocomplete: React.RefForwardingComponent<
   }, [freeSolo, open]);
 
   useEffect(() => {
-    if (!open || (searchText === '' && freeSolo)) return;
+    if (!open || (debouncedSearchText === '' && freeSolo)) return;
 
     let isSubscribed = true;
 
@@ -94,15 +96,18 @@ const AsyncAutocomplete: React.RefForwardingComponent<
         if (isSubscribed) {
           setOptions(data);
         }
+      } catch (e) {
+        enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
       } finally {
         setLoading(false);
       }
     })();
 
+    // eslint-disable-next-line consistent-return
     return () => {
       isSubscribed = false;
     };
-  }, [debouncedSearchText, fetchOptions, freeSolo, open, searchText]);
+  }, [debouncedSearchText, enqueueSnackbar, fetchOptions, freeSolo, open]);
 
   useImperativeHandle(ref, () => ({
     clear: () => {
