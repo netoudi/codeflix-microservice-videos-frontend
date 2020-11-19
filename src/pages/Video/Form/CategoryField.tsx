@@ -1,5 +1,4 @@
-import * as React from 'react';
-import { MutableRefObject, useImperativeHandle, useRef } from 'react';
+import React, { MutableRefObject, useCallback, useImperativeHandle, useRef } from 'react';
 import {
   FormControl,
   FormControlProps,
@@ -51,17 +50,19 @@ const CategoryField: React.RefForwardingComponent<CategoryFieldComponent, Catego
   const autocompleteRef = useRef() as MutableRefObject<AsyncAutocompleteComponent>;
   const theme = useTheme();
 
-  function fetchOptions(searchText) {
-    return autoCompleteHttp(
-      categoryHttp.list({
-        queryParams: {
-          search: searchText,
-          genres: genres.map((genre) => genre.id).join(','),
-          all: '',
-        },
-      }),
-    ).then((response) => response.data.data);
-  }
+  const fetchOptions = useCallback(
+    (searchText) =>
+      autoCompleteHttp(
+        categoryHttp.list({
+          queryParams: {
+            search: searchText,
+            genres: genres.map((genre) => genre.id).join(','),
+            all: '',
+          },
+        }),
+      ).then((response) => response.data.data),
+    [autoCompleteHttp, genres],
+  );
 
   useImperativeHandle(ref, () => ({
     clear: () => autocompleteRef.current.clear(),

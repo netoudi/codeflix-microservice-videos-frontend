@@ -1,20 +1,24 @@
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
+import { useCallback } from 'react';
 
 const useHttpHandled = () => {
-  const snackbar = useSnackbar();
+  const { enqueueSnackbar } = useSnackbar();
 
-  return async (request: Promise<any>) => {
-    try {
-      return await request;
-    } catch (e) {
-      if (!axios.isCancel(e)) {
-        snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
+  return useCallback(
+    async (request: Promise<any>) => {
+      try {
+        return await request;
+      } catch (e) {
+        if (!axios.isCancel(e)) {
+          enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
+        }
+
+        throw e;
       }
-
-      throw e;
-    }
-  };
+    },
+    [enqueueSnackbar],
+  );
 };
 
 export default useHttpHandled;

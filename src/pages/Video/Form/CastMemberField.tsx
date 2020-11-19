@@ -1,5 +1,10 @@
-import * as React from 'react';
-import { MutableRefObject, RefAttributes, useImperativeHandle, useRef } from 'react';
+import React, {
+  MutableRefObject,
+  RefAttributes,
+  useCallback,
+  useImperativeHandle,
+  useRef,
+} from 'react';
 import { FormControl, FormControlProps, FormHelperText, Typography } from '@material-ui/core';
 import AsyncAutocomplete, {
   AsyncAutocompleteComponent,
@@ -31,11 +36,13 @@ const CastMemberField: React.RefForwardingComponent<
   const { addItem, removeItem } = useCollectionManager(castMembers, setCastMembers);
   const autocompleteRef = useRef() as MutableRefObject<AsyncAutocompleteComponent>;
 
-  function fetchOptions(searchText) {
-    return autocompleteHttp(
-      castMemberHttp.list({ queryParams: { search: searchText, all: '' } }),
-    ).then((response) => response.data.data);
-  }
+  const fetchOptions = useCallback(
+    (searchText) =>
+      autocompleteHttp(castMemberHttp.list({ queryParams: { search: searchText, all: '' } })).then(
+        (response) => response.data.data,
+      ),
+    [autocompleteHttp],
+  );
 
   useImperativeHandle(ref, () => ({
     clear: () => autocompleteRef.current.clear(),
