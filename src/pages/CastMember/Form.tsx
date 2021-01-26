@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router';
 import {
   FormControl,
@@ -16,6 +16,8 @@ import castMemberHttp from '../../util/http/cast-member-http';
 import { CastMember, GetResponse } from '../../util/models';
 import SubmitActions from '../../components/SubmitActions';
 import DefaultForm from '../../components/DefaultForm';
+import LoadingContext from '../../components/Loading/LoadingContext';
+import useSnackbarFormError from '../../hooks/useSnackbarFormError';
 
 const validationSchema = Yup.object().shape({
   name: Yup.string()
@@ -32,7 +34,7 @@ const Form: React.FC = () => {
   const history = useHistory();
   const snackbar = useSnackbar();
   const [castMember, setCastMember] = useState<CastMember | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const loading = useContext(LoadingContext);
 
   const {
     register,
@@ -43,7 +45,10 @@ const Form: React.FC = () => {
     reset,
     watch,
     triggerValidation,
+    formState,
   } = useForm<CastMember>({ validationSchema });
+
+  useSnackbarFormError(formState.submitCount, errors);
 
   useEffect(() => {
     register({ name: 'type' });
@@ -52,16 +57,11 @@ const Form: React.FC = () => {
   useEffect(() => {
     if (!id) return;
 
-    setLoading(true);
-
-    castMemberHttp
-      .get<GetResponse<CastMember>>(id)
-      .then((response) => {
-        setCastMember(response.data.data);
-        reset(response.data.data);
-      })
-      .finally(() => setLoading(false));
-  }, []); // eslint-disable-line
+    castMemberHttp.get<GetResponse<CastMember>>(id).then((response) => {
+      setCastMember(response.data.data);
+      reset(response.data.data);
+    });
+  }, [id, reset]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target as HTMLInputElement;
@@ -69,8 +69,6 @@ const Form: React.FC = () => {
   };
 
   function onSubmit(formData, event) {
-    setLoading(true);
-
     const http = !castMember
       ? castMemberHttp.create(formData)
       : castMemberHttp.update(castMember.id, formData);
@@ -91,12 +89,15 @@ const Form: React.FC = () => {
           variant: 'error',
         });
         console.log(error);
-      })
-      .finally(() => setLoading(false));
+      });
   }
 
   return (
-    <DefaultForm onSubmit={handleSubmit(onSubmit)}>
+    <DefaultForm
+      GridContainerProps={{ spacing: 5 }}
+      GridItemProps={{ xs: 12, md: 6 }}
+      onSubmit={handleSubmit(onSubmit)}
+    >
       <TextField
         name="name"
         label="Nome"

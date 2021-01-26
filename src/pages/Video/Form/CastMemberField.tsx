@@ -1,13 +1,21 @@
-import * as React from 'react';
+import React, {
+  MutableRefObject,
+  RefAttributes,
+  useCallback,
+  useImperativeHandle,
+  useRef,
+} from 'react';
 import { FormControl, FormControlProps, FormHelperText, Typography } from '@material-ui/core';
-import AsyncAutocomplete from '../../../components/AsyncAutocomplete';
+import AsyncAutocomplete, {
+  AsyncAutocompleteComponent,
+} from '../../../components/AsyncAutocomplete';
 import GridSelected from '../../../components/GridSelected';
 import GridSelectedItem from '../../../components/GridSelected/GridSelectedItem';
 import useHttpHandled from '../../../hooks/useHttpHandled';
 import castMemberHttp from '../../../util/http/cast-member-http';
 import useCollectionManager from '../../../hooks/useCollectionManager';
 
-interface CastMemberFieldProps {
+interface CastMemberFieldProps extends RefAttributes<CastMemberFieldComponent> {
   castMembers: any[];
   setCastMembers: (castMembers) => void;
   error: any;
@@ -15,20 +23,35 @@ interface CastMemberFieldProps {
   FormControlProps?: FormControlProps;
 }
 
-const CastMemberField: React.FC<CastMemberFieldProps> = (props) => {
-  const { castMembers, setCastMembers, error, disabled } = props;
-  const autoCompleteHttp = useHttpHandled();
-  const { addItem, removeItem } = useCollectionManager(castMembers, setCastMembers);
+export interface CastMemberFieldComponent {
+  clear: () => void;
+}
 
-  function fetchOptions(searchText) {
-    return autoCompleteHttp(
-      castMemberHttp.list({ queryParams: { search: searchText, all: '' } }),
-    ).then((response) => response.data.data);
-  }
+const CastMemberField: React.RefForwardingComponent<
+  CastMemberFieldComponent,
+  CastMemberFieldProps
+> = (props, ref) => {
+  const { castMembers, setCastMembers, error, disabled } = props;
+  const autocompleteHttp = useHttpHandled();
+  const { addItem, removeItem } = useCollectionManager(castMembers, setCastMembers);
+  const autocompleteRef = useRef() as MutableRefObject<AsyncAutocompleteComponent>;
+
+  const fetchOptions = useCallback(
+    (searchText) =>
+      autocompleteHttp(castMemberHttp.list({ queryParams: { search: searchText, all: '' } })).then(
+        (response) => response.data.data,
+      ),
+    [autocompleteHttp],
+  );
+
+  useImperativeHandle(ref, () => ({
+    clear: () => autocompleteRef.current.clear(),
+  }));
 
   return (
     <>
       <AsyncAutocomplete
+        ref={autocompleteRef}
         fetchOptions={fetchOptions}
         AutocompleteProps={{
           clearOnEscape: true,
@@ -66,4 +89,4 @@ const CastMemberField: React.FC<CastMemberFieldProps> = (props) => {
   );
 };
 
-export default CastMemberField;
+export default React.forwardRef(CastMemberField);

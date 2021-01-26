@@ -8,6 +8,7 @@ import GenreList from '../pages/Genre/PageList';
 import GenreForm from '../pages/Genre/PageForm';
 import VideoList from '../pages/Video/PageList';
 import VideoForm from '../pages/Video/PageForm';
+import UploadsList from '../pages/Uploads';
 
 export interface MyRouteProps extends RouteProps {
   name: string;
@@ -104,6 +105,13 @@ const routes: MyRouteProps[] = [
     label: 'Editar vídeo',
     path: '/videos/:id/edit',
     component: VideoForm,
+    exact: true,
+  },
+  {
+    name: 'uploads',
+    label: 'Listar uploads',
+    path: '/uploads',
+    component: UploadsList,
     exact: true,
   },
 ];

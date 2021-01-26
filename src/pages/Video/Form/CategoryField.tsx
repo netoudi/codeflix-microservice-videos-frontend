@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { MutableRefObject, useCallback, useImperativeHandle, useRef } from 'react';
 import {
   FormControl,
   FormControlProps,
@@ -6,9 +6,12 @@ import {
   makeStyles,
   Theme,
   Typography,
+  useTheme,
 } from '@material-ui/core';
 import { grey } from '@material-ui/core/colors';
-import AsyncAutocomplete from '../../../components/AsyncAutocomplete';
+import AsyncAutocomplete, {
+  AsyncAutocompleteComponent,
+} from '../../../components/AsyncAutocomplete';
 import GridSelected from '../../../components/GridSelected';
 import GridSelectedItem from '../../../components/GridSelected/GridSelectedItem';
 import useHttpHandled from '../../../hooks/useHttpHandled';
@@ -32,27 +35,43 @@ interface CategoryFieldProps {
   FormControlProps?: FormControlProps;
 }
 
-const CategoryField: React.FC<CategoryFieldProps> = (props) => {
+export interface CategoryFieldComponent {
+  clear: () => void;
+}
+
+const CategoryField: React.RefForwardingComponent<CategoryFieldComponent, CategoryFieldProps> = (
+  props,
+  ref,
+) => {
   const classes = useStyles();
   const { categories, setCategories, genres, error, disabled } = props;
   const autoCompleteHttp = useHttpHandled();
   const { addItem, removeItem } = useCollectionManager(categories, setCategories);
+  const autocompleteRef = useRef() as MutableRefObject<AsyncAutocompleteComponent>;
+  const theme = useTheme();
 
-  function fetchOptions(searchText) {
-    return autoCompleteHttp(
-      categoryHttp.list({
-        queryParams: {
-          search: searchText,
-          genres: genres.map((genre) => genre.id).join(','),
-          all: '',
-        },
-      }),
-    ).then((response) => response.data.data);
-  }
+  const fetchOptions = useCallback(
+    (searchText) =>
+      autoCompleteHttp(
+        categoryHttp.list({
+          queryParams: {
+            search: searchText,
+            genres: genres.map((genre) => genre.id).join(','),
+            all: '',
+          },
+        }),
+      ).then((response) => response.data.data),
+    [autoCompleteHttp, genres],
+  );
+
+  useImperativeHandle(ref, () => ({
+    clear: () => autocompleteRef.current.clear(),
+  }));
 
   return (
     <>
       <AsyncAutocomplete
+        ref={autocompleteRef}
         fetchOptions={fetchOptions}
         AutocompleteProps={{
           clearOnEscape: true,
@@ -63,6 +82,9 @@ const CategoryField: React.FC<CategoryFieldProps> = (props) => {
         }}
         TextFieldProps={{ label: 'Categorias', error: error !== undefined }}
       />
+      <FormHelperText style={{ height: theme.spacing(3) }}>
+        Escolha pelo menos uma categoria de cada gênero.
+      </FormHelperText>
       <FormControl
         fullWidth
         margin="none"
@@ -98,4 +120,4 @@ const CategoryField: React.FC<CategoryFieldProps> = (props) => {
   );
 };
 
-export default CategoryField;
+export default React.forwardRef(CategoryField);

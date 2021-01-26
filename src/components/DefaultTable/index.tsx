@@ -126,3 +126,17 @@ const DefaultTable: React.RefForwardingComponent<MuiDataTableRefComponent, Defau
 };
 
 export default React.forwardRef(DefaultTable);
+
+export function makeActionsStyles(column: number) {
+  return (theme: Theme) => {
+    const copyTheme = cloneDeep(theme);
+    const selector = `&[data-testid^="MuiDataTableBodyCell-${column}"]`;
+
+    (copyTheme.overrides as any).MUIDataTableBodyCell.root[selector] = {
+      paddingTop: '0px',
+      paddingBottom: '0px',
+    };
+
+    return copyTheme;
+  };
+}

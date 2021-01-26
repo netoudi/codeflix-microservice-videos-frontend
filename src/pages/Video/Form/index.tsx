@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { createRef, MutableRefObject, useContext, useEffect, useRef, useState } from 'react';
 import { useHistory, useParams } from 'react-router';
 import {
   Card,
   CardContent,
   Checkbox,
   FormControlLabel,
-  FormHelperText,
   Grid,
   makeStyles,
   TextField,
@@ -16,22 +15,42 @@ import {
 } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
+import { useDispatch } from 'react-redux';
+import { omit, zipObject } from 'lodash';
 import * as Yup from '../../../util/vendor/yup';
 import videoHttp from '../../../util/http/video-http';
 import { GetResponse, Video, VideoFileFieldsMap } from '../../../util/models';
 import SubmitActions from '../../../components/SubmitActions';
 import DefaultForm from '../../../components/DefaultForm';
+import { InputFileComponent } from '../../../components/InputFile';
 import RatingField from './RatingField';
 import UploadField from './UploadField';
-import CategoryField from './CategoryField';
-import GenreField from './GenreField';
-import CastMemberField from './CastMemberField';
+import CategoryField, { CategoryFieldComponent } from './CategoryField';
+import GenreField, { GenreFieldComponent } from './GenreField';
+import CastMemberField, { CastMemberFieldComponent } from './CastMemberField';
+import useSnackbarFormError from '../../../hooks/useSnackbarFormError';
+import LoadingContext from '../../../components/Loading/LoadingContext';
+import SnackbarUpload from '../../../components/SnackbarUpload';
+import { FileInfo } from '../../../store/upload/types';
+import { Creators as UploadCreators } from '../../../store/upload';
 
 const useStyles = makeStyles((theme: Theme) => ({
+  cardRating: {
+    borderRadius: '4px',
+    backgroundColor: '#f5f5f5',
+    marginTop: 0,
+  },
   cardUpload: {
     borderRadius: '4px',
     backgroundColor: '#f5f5f5',
-    margin: theme.spacing(2),
+    margin: theme.spacing(2, 0),
+  },
+  cardOpened: {
+    borderRadius: '4px',
+    backgroundColor: '#f5f5f5',
+  },
+  cardContentOpened: {
+    paddingBottom: `${theme.spacing(2)}px !important`,
   },
 }));
 
@@ -83,11 +102,21 @@ const Form: React.FC = () => {
   const classes = useStyles();
   const { id } = useParams();
   const history = useHistory();
-  const snackbar = useSnackbar();
+  const { enqueueSnackbar } = useSnackbar();
   const [video, setVideo] = useState<Video | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const loading = useContext(LoadingContext);
   const theme = useTheme();
   const isGreaterMd = useMediaQuery(theme.breakpoints.up('md'));
+
+  const castMemberRef = useRef() as MutableRefObject<CastMemberFieldComponent>;
+  const genreRef = useRef() as MutableRefObject<GenreFieldComponent>;
+  const categoryRef = useRef() as MutableRefObject<CategoryFieldComponent>;
+  const uploadsRef = useRef(
+    zipObject(
+      fileFields,
+      fileFields.map(() => createRef()),
+    ),
+  ) as MutableRefObject<{ [key: string]: MutableRefObject<InputFileComponent> }>;
 
   const {
     register,
@@ -98,16 +127,21 @@ const Form: React.FC = () => {
     reset,
     watch,
     triggerValidation,
+    formState,
   } = useForm<Video>({
     validationSchema,
     defaultValues: {
-      rating: '',
+      rating: null,
       opened: false,
       cast_members: [],
       genres: [],
       categories: [],
     },
   });
+
+  const dispatch = useDispatch();
+
+  useSnackbarFormError(formState.submitCount, errors);
 
   useEffect(() => {
     ['rating', 'opened', 'cast_members', 'genres', 'categories', ...fileFields].forEach((name) =>
@@ -118,30 +152,27 @@ const Form: React.FC = () => {
   useEffect(() => {
     if (!id) return;
 
-    setLoading(true);
-
     (async () => {
       try {
         const response = await videoHttp.get<GetResponse<Video>>(id);
         setVideo(response.data.data);
         reset(response.data.data);
       } catch (error) {
-        snackbar.enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
-      } finally {
-        setLoading(false);
+        enqueueSnackbar('Não foi possível carregar as informações.', { variant: 'error' });
       }
     })();
-  }, []); // eslint-disable-line
+  }, [enqueueSnackbar, id, reset]);
 
   function onSubmit(formData, event) {
-    setLoading(true);
-
     (async () => {
       try {
+        const sendData = omit(formData, fileFields);
         const response = !video
-          ? await videoHttp.create(formData)
-          : await videoHttp.update(video.id, formData);
-        snackbar.enqueueSnackbar('Vídeo salvo com sucesso.', { variant: 'success' });
+          ? await videoHttp.create(sendData)
+          : await videoHttp.update(video.id, sendData);
+        enqueueSnackbar('Vídeo salvo com sucesso.', { variant: 'success' });
+        uploadFiles(response.data.data);
+        id && resetForm();
         setTimeout(() => {
           event
             ? id
@@ -150,19 +181,45 @@ const Form: React.FC = () => {
             : history.push('/videos');
         });
       } catch (error) {
-        snackbar.enqueueSnackbar('Não foi possível salvar o vídeo.', { variant: 'error' });
-      } finally {
-        setLoading(false);
+        enqueueSnackbar('Não foi possível salvar o vídeo.', { variant: 'error' });
       }
     })();
   }
 
+  function resetForm() {
+    Object.keys(uploadsRef.current).forEach((field) => uploadsRef.current[field].current.clear());
+    castMemberRef.current.clear();
+    genreRef.current.clear();
+    categoryRef.current.clear();
+  }
+
+  function uploadFiles(data) {
+    const files: FileInfo[] = fileFields
+      .filter((fileField) => getValues()[fileField] instanceof File)
+      .map((fileField) => ({
+        fileField,
+        file: getValues()[fileField],
+      }));
+
+    if (files.length === 0) {
+      return;
+    }
+
+    dispatch(UploadCreators.addUpload({ video: data, files }));
+
+    enqueueSnackbar('', {
+      key: 'snackbar-upload',
+      persist: true,
+      anchorOrigin: {
+        vertical: 'bottom',
+        horizontal: 'right',
+      },
+      content: (key: any) => <SnackbarUpload id={key} />,
+    });
+  }
+
   return (
     <DefaultForm GridItemProps={{ xs: 12 }} onSubmit={handleSubmit(onSubmit)}>
-      <pre style={{ padding: 20, backgroundColor: '#3333', fontSize: 16 }}>
-        {JSON.stringify(getValues(), null, 2)}
-      </pre>
-
       <Grid container spacing={5}>
         <Grid item xs={12} md={6}>
           <TextField
@@ -223,6 +280,7 @@ const Form: React.FC = () => {
             </Grid>
           </Grid>
           <CastMemberField
+            ref={castMemberRef}
             castMembers={watch('cast_members')}
             setCastMembers={(value) => setValue('cast_members', value, true)}
             error={errors.cast_members}
@@ -231,6 +289,7 @@ const Form: React.FC = () => {
           <Grid container spacing={1}>
             <Grid item xs={12} md={6}>
               <GenreField
+                ref={genreRef}
                 genres={watch('genres')}
                 setGenres={(value) => setValue('genres', value, true)}
                 categories={watch('categories')}
@@ -241,6 +300,7 @@ const Form: React.FC = () => {
             </Grid>
             <Grid item xs={12} md={6}>
               <CategoryField
+                ref={categoryRef}
                 categories={watch('categories')}
                 setCategories={(value) => setValue('categories', value, true)}
                 genres={watch('genres')}
@@ -248,34 +308,35 @@ const Form: React.FC = () => {
                 disabled={loading}
               />
             </Grid>
-            <Grid item xs={12}>
-              <FormHelperText>Escolha os gêneros do vídeo.</FormHelperText>
-              <FormHelperText>Escolha pelo menos uma categoria de cada gênero.</FormHelperText>
-            </Grid>
           </Grid>
         </Grid>
         <Grid item xs={12} md={6}>
-          <RatingField
-            value={watch('rating')}
-            setValue={(value) => setValue('rating', value, true)}
-            error={errors.rating}
-            disabled={loading}
-            FormControlProps={{
-              margin: isGreaterMd ? 'none' : 'normal',
-            }}
-          />
-          <br />
+          <Card variant="outlined" className={classes.cardRating}>
+            <CardContent>
+              <RatingField
+                value={watch('rating')}
+                setValue={(value) => setValue('rating', value, true)}
+                error={errors.rating}
+                disabled={loading}
+                FormControlProps={{
+                  margin: isGreaterMd ? 'none' : 'normal',
+                }}
+              />
+            </CardContent>
+          </Card>
           <Card variant="outlined" className={classes.cardUpload}>
             <CardContent>
               <Typography color="primary" variant="h6">
                 Imagens
               </Typography>
               <UploadField
+                ref={uploadsRef.current.thumb_file}
                 label="Thumb"
                 accept="image/*"
                 setValue={(value) => setValue('thumb_file', value)}
               />
               <UploadField
+                ref={uploadsRef.current.banner_file}
                 label="Banner"
                 accept="image/*"
                 setValue={(value) => setValue('banner_file', value)}
@@ -288,35 +349,40 @@ const Form: React.FC = () => {
                 Vídeos
               </Typography>
               <UploadField
+                ref={uploadsRef.current.trailer_file}
                 label="Trailer"
                 accept="video/mp4"
                 setValue={(value) => setValue('trailer_file', value)}
               />
               <UploadField
+                ref={uploadsRef.current.video_file}
                 label="Principal"
                 accept="video/mp4"
                 setValue={(value) => setValue('video_file', value)}
               />
             </CardContent>
           </Card>
-          <br />
-          <FormControlLabel
-            disabled={loading}
-            control={
-              <Checkbox
-                name="opened"
-                color="primary"
-                onChange={() => setValue('opened', !getValues().opened)}
-                checked={watch('opened')}
+          <Card variant="outlined" className={classes.cardOpened}>
+            <CardContent className={classes.cardContentOpened}>
+              <FormControlLabel
+                disabled={loading}
+                control={
+                  <Checkbox
+                    name="opened"
+                    color="primary"
+                    onChange={() => setValue('opened', !getValues().opened)}
+                    checked={watch('opened')}
+                  />
+                }
+                label={
+                  <Typography color="primary" variant="subtitle2">
+                    Quero que este conteúdo apareça na seção lançamentos.
+                  </Typography>
+                }
+                labelPlacement="end"
               />
-            }
-            label={
-              <Typography color="primary" variant="subtitle2">
-                Quero que este conteúdo aparece na seção lançamentos.
-              </Typography>
-            }
-            labelPlacement="end"
-          />
+            </CardContent>
+          </Card>
         </Grid>
       </Grid>
       <SubmitActions

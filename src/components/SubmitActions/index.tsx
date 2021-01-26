@@ -3,7 +3,8 @@ import { Box, Button, ButtonProps, makeStyles, Theme } from '@material-ui/core';
 
 const useStyles = makeStyles((theme: Theme) => ({
   submit: {
-    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+    marginTop: theme.spacing(3),
   },
 }));
 
@@ -26,7 +27,7 @@ const SubmitActions: React.FC<SubmitActionsProps> = ({
   };
 
   return (
-    <Box dir="rtl">
+    <Box dir="ltr">
       <Button {...buttonProps} onClick={handleSave}>
         Salvar
       </Button>

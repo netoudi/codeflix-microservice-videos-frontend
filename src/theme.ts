@@ -28,6 +28,11 @@ const palette: PaletteOptions = {
 const theme = createMuiTheme({
   palette,
   overrides: {
+    MuiGrid: {
+      'spacing-xs-5': {
+        margin: '0 -20px',
+      },
+    },
     MUIDataTable: {
       paper: {
         boxShadow: 'none',
