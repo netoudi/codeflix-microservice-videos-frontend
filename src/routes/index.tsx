@@ -13,6 +13,7 @@ import UploadsList from '../pages/Uploads';
 export interface MyRouteProps extends RouteProps {
   name: string;
   label: string;
+  auth?: boolean;
 }
 
 const routes: MyRouteProps[] = [
@@ -22,6 +23,7 @@ const routes: MyRouteProps[] = [
     path: '/',
     component: Dashboard,
     exact: true,
+    auth: true,
   },
   {
     name: 'categories.list',
@@ -29,6 +31,7 @@ const routes: MyRouteProps[] = [
     path: '/categories',
     component: CategoryList,
     exact: true,
+    auth: true,
   },
   {
     name: 'categories.create',
@@ -36,6 +39,7 @@ const routes: MyRouteProps[] = [
     path: '/categories/create',
     component: CategoryForm,
     exact: true,
+    auth: true,
   },
   {
     name: 'categories.edit',
@@ -43,6 +47,7 @@ const routes: MyRouteProps[] = [
     path: '/categories/:id/edit',
     component: CategoryForm,
     exact: true,
+    auth: true,
   },
   {
     name: 'cast_members.list',
@@ -50,6 +55,7 @@ const routes: MyRouteProps[] = [
     path: '/cast-members',
     component: CastMemberList,
     exact: true,
+    auth: true,
   },
   {
     name: 'cast_members.create',
@@ -57,6 +63,7 @@ const routes: MyRouteProps[] = [
     path: '/cast-members/create',
     component: CastMemberForm,
     exact: true,
+    auth: true,
   },
   {
     name: 'cast_members.edit',
@@ -64,6 +71,7 @@ const routes: MyRouteProps[] = [
     path: '/cast-members/:id/edit',
     component: CastMemberForm,
     exact: true,
+    auth: true,
   },
   {
     name: 'genres.list',
@@ -71,6 +79,7 @@ const routes: MyRouteProps[] = [
     path: '/genres',
     component: GenreList,
     exact: true,
+    auth: true,
   },
   {
     name: 'genres.create',
@@ -78,6 +87,7 @@ const routes: MyRouteProps[] = [
     path: '/genres/create',
     component: GenreForm,
     exact: true,
+    auth: true,
   },
   {
     name: 'genres.edit',
@@ -85,6 +95,7 @@ const routes: MyRouteProps[] = [
     path: '/genres/:id/edit',
     component: GenreForm,
     exact: true,
+    auth: true,
   },
   {
     name: 'videos.list',
@@ -92,6 +103,7 @@ const routes: MyRouteProps[] = [
     path: '/videos',
     component: VideoList,
     exact: true,
+    auth: true,
   },
   {
     name: 'videos.create',
@@ -99,6 +111,7 @@ const routes: MyRouteProps[] = [
     path: '/videos/create',
     component: VideoForm,
     exact: true,
+    auth: true,
   },
   {
     name: 'videos.edit',
@@ -106,6 +119,7 @@ const routes: MyRouteProps[] = [
     path: '/videos/:id/edit',
     component: VideoForm,
     exact: true,
+    auth: true,
   },
   {
     name: 'uploads',
@@ -113,6 +127,7 @@ const routes: MyRouteProps[] = [
     path: '/uploads',
     component: UploadsList,
     exact: true,
+    auth: true,
   },
 ];
 
