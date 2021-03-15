@@ -26,6 +26,7 @@ import * as Yup from '../../util/vendor/yup';
 import LoadingContext from '../../components/Loading/LoadingContext';
 import useDeleteCollection from '../../hooks/useDeleteCollection';
 import DeleteDialog from '../../components/DeleteDialog';
+import { useKeycloak } from '@react-keycloak/web';
 
 const DEBOUNCE_TIME = 300;
 const DEBOUNCE_SEARCH_TIME = 300;
@@ -94,6 +95,9 @@ const columnsDefinition: TableColumn[] = [
 type TableProps = {};
 
 const Table: React.FC = (props: TableProps) => {
+  const obj = useKeycloak();
+  console.log(obj);
+
   const { enqueueSnackbar } = useSnackbar();
   const subscribed = useRef(true);
   const [categories, setCategories] = useState<Category[]>([]);
