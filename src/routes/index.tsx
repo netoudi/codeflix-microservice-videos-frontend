@@ -9,6 +9,7 @@ import GenreForm from '../pages/Genre/PageForm';
 import VideoList from '../pages/Video/PageList';
 import VideoForm from '../pages/Video/PageForm';
 import UploadsList from '../pages/Uploads';
+import Login from '../pages/Login';
 
 export interface MyRouteProps extends RouteProps {
   name: string;
@@ -17,6 +18,14 @@ export interface MyRouteProps extends RouteProps {
 }
 
 const routes: MyRouteProps[] = [
+  {
+    name: 'login',
+    label: 'Login',
+    path: '/login',
+    component: Login,
+    exact: true,
+    auth: false,
+  },
   {
     name: 'dashboard',
     label: 'Dashboard',
