@@ -19,7 +19,7 @@ const validationSchema = Yup.object().shape({
 });
 
 const Form: React.FC = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id?: string }>();
   const history = useHistory();
   const { enqueueSnackbar } = useSnackbar();
   const [category, setCategory] = useState<Category | null>(null);

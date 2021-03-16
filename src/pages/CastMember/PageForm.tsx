@@ -4,7 +4,7 @@ import { Page } from '../../components/Page';
 import Form from './Form';
 
 const PageForm: React.FC = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id?: string }>();
 
   return (
     <Page title={!id ? 'Criar membro de elenco' : 'Editar membro de elenco'}>

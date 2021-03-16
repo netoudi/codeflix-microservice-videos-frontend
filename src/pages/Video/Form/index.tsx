@@ -100,7 +100,7 @@ const validationSchema = Yup.object().shape({
 
 const Form: React.FC = () => {
   const classes = useStyles();
-  const { id } = useParams();
+  const { id } = useParams<{ id?: string }>();
   const history = useHistory();
   const { enqueueSnackbar } = useSnackbar();
   const [video, setVideo] = useState<Video | null>(null);
