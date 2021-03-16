@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Route as ReactRoute, Switch } from 'react-router-dom';
 import { useKeycloak } from '@react-keycloak/web';
+import Waiting from '../components/Waiting';
 import PrivateRoute from './PriveteRoute';
 import routes from './index';
 
@@ -8,7 +9,7 @@ const AppRouter: React.FC = () => {
   const { initialized } = useKeycloak();
 
   if (!initialized) {
-    return <div>Carregando...</div>;
+    return <Waiting />;
   }
 
   return (

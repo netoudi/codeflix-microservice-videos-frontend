@@ -2,6 +2,7 @@ import React from 'react';
 import { useLocation } from 'react-router';
 import { Redirect } from 'react-router-dom';
 import { useKeycloak } from '@react-keycloak/web';
+import Waiting from '../../components/Waiting';
 
 const Login: React.FC = () => {
   const { keycloak } = useKeycloak();
@@ -17,7 +18,7 @@ const Login: React.FC = () => {
     redirectUri: `${window.location.origin}${process.env.REACT_APP_BASENAME}${from.pathname}`,
   });
 
-  return <div>Carregando...</div>;
+  return <Waiting />;
 };
 
 export default Login;
