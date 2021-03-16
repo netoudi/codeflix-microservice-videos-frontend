@@ -1,14 +1,8 @@
 import * as React from 'react';
-import {
-  AppBar,
-  Button,
-  makeStyles,
-  Theme,
-  Toolbar,
-  Typography,
-} from '@material-ui/core';
+import { AppBar, makeStyles, Theme, Toolbar, Typography } from '@material-ui/core';
 
 import { Menu } from './Menu';
+import { UserAccountMenu } from './UserAccountMenu';
 
 import logo from '../../static/img/logo.png';
 
@@ -40,7 +34,7 @@ export const Navbar: React.FC = () => {
           <img src={logo} alt="CodeFlix" className={classes.logo} />
         </Typography>
 
-        <Button color="inherit">Login</Button>
+        <UserAccountMenu />
       </Toolbar>
     </AppBar>
   );
